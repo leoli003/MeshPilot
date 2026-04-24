@@ -1,119 +1,118 @@
 ---
 name: quick-plan
 description: |
-  Quickly generate implementation plans without user confirmation during planning phase.
-  Triggers when user wants to create a plan, design implementation, or break down a task.
-  Use this skill when user says: "quick plan", "快速plan", "帮我规划", "create a plan", "design implementation".
+  快速生成实施计划，无需用户确认规划过程。
+  当用户想要创建计划、设计实现方案或拆解任务时触发。
+  触发词: "快速规划", "帮我规划", "创建计划", "设计实现", "quick plan", "create a plan"。
 ---
 
-## What this skill does
+## 功能说明
 
-Generates implementation plans in a single step, skipping the usual plan mode confirmation. After generating the plan, outputs it directly to the conversation for user review and modification.
+一步生成实施计划，跳过常规计划模式的确认步骤。生成计划后直接输出到对话中，供用户审查和修改。
 
-## Usage
+## 使用方式
 
 ```
-/mesh-quick-plan <task description>
+/mesh-quick-plan <任务描述>
 ```
 
-Or simply describe what you want to plan:
+或直接描述要规划的内容：
 ```
 帮我规划一个用户认证系统
 ```
 
-## Workflow
+## 工作流程
 
-1. **Analyze the task** - Understand what the user wants to implement
-2. **Select appropriate agent** - Choose based on task nature:
-   - `ecc:planner` - For complex features, architectural decisions, refactoring
-   - `Plan` - For general planning tasks
-   - `ecc:architect` - For system design, scalability, technical decisions
-   - Default to `ecc:planner` if no specific match
-3. **Generate plan** - Use selected agent to create comprehensive plan
-4. **Output for review** - Present plan to user for confirmation/modification
+1. **分析任务** - 理解用户想要实现的内容
+2. **选择合适的代理** - 根据任务性质选择:
+   - `ecc:planner` - 复杂功能、架构决策、重构
+   - `Plan` - 一般规划任务
+   - `ecc:architect` - 系统设计、扩展性、技术决策
+   - 默认使用 `ecc:planner`
+3. **生成计划** - 使用选定的代理创建完整计划
+4. **输出供审查** - 将计划呈现给用户确认/修改
 
-## Agent Selection Logic
+## 代理选择逻辑
 
-| Task Type | Agent |
-|-----------|-------|
-| Feature implementation, refactoring | ecc:planner |
-| System architecture, scalability | ecc:architect |
-| General planning, simple tasks | Plan |
+| 任务类型 | 代理 |
+|---------|------|
+| 功能实现、重构 | ecc:planner |
+| 系统架构、扩展性 | ecc:architect |
+| 一般规划、简单任务 | Plan |
 
-## Output Format
+## 输出格式
 
 ```markdown
-# Plan: [Task Name]
+# 计划: [任务名称]
 
-## Overview
-[Brief description of what will be implemented]
+## 概述
+[将要实现的内容简述]
 
-## Steps
-1. [Step 1]
-   - Details: ...
-   - Files: ...
-2. [Step 2]
+## 步骤
+1. [步骤 1]
+   - 详情: ...
+   - 文件: ...
+2. [步骤 2]
    ...
 
-## Dependencies
-- [Any dependencies needed]
+## 依赖
+- [需要的依赖项]
 
-## Risks
-- [Potential issues to watch for]
+## 风险
+- [需要注意的潜在问题]
 
-## Estimated Effort
-- [Time/complexity estimate]
+## 预估工作量
+- [时间/复杂度估算]
 ```
 
-## After Plan Generation
+## 计划生成后
 
-Once the plan is output:
-1. Ask user: "请确认这个 plan，或者告诉我需要修改的地方"
-2. Wait for user response
-3. If modifications needed, update plan accordingly
-4. Once confirmed, user can proceed with implementation
+计划输出后:
+1. 提示用户: "请确认这个计划，或告诉我需要修改的地方"
+2. 等待用户回复
+3. 如需修改，相应更新计划
+4. 确认后，用户可以开始实施
 
-## Example
+## 示例
 
-User: `/mesh-quick-plan 添加用户登录功能`
+用户: `/mesh-quick-plan 添加用户登录功能`
 
-Output:
+输出:
 ```markdown
-# Plan: 用户登录功能
+# 计划: 用户登录功能
 
-## Overview
+## 概述
 实现基于 JWT 的用户认证系统，包含登录、登出、token 刷新功能。
 
-## Steps
+## 步骤
 1. 创建认证模块结构
-   - Files: src/auth/, src/auth/types.ts
+   - 文件: src/auth/, src/auth/types.ts
 2. 实现 JWT token 管理
-   - Files: src/auth/jwt.ts
+   - 文件: src/auth/jwt.ts
 3. 创建登录 API 端点
-   - Files: src/api/auth.ts
+   - 文件: src/api/auth.ts
 4. 添加前端登录表单
-   - Files: src/components/LoginForm.tsx
+   - 文件: src/components/LoginForm.tsx
 5. 集成认证中间件
-   - Files: src/middleware/auth.ts
+   - 文件: src/middleware/auth.ts
 
-## Dependencies
-- jsonwebtoken package
-- bcrypt for password hashing
+## 依赖
+- jsonwebtoken 包
+- bcrypt 用于密码哈希
 
-## Risks
+## 风险
 - Token 存储安全性
 - 密码传输加密
 
-## Estimated Effort
-- Medium: 2-3 days
+## 预估工作量
+- 中等: 2-3 天
 ```
 
-请确认这个 plan，或者告诉我需要修改的地方。
-```
+请确认这个计划，或告诉我需要修改的地方。
 
-## Notes
+## 注意事项
 
-- This skill is designed for speed - no intermediate confirmations
-- The plan is a starting point - user can always modify
-- For complex tasks, the selected agent may do additional exploration
-- Keep plans actionable and specific
+- 此技能专为速度设计 - 无中间确认
+- 计划是起点 - 用户随时可以修改
+- 复杂任务时，选定的代理可能进行额外探索
+- 保持计划可执行且具体

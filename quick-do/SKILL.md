@@ -1,203 +1,203 @@
 ---
 name: quick-do
 description: |
-  Execute plans or tasks quickly without user confirmation during execution.
-  Triggers when user wants to execute, run, or implement something: "quick do", "快速执行", "执行plan", "run plan", "implement this".
-  Use this skill when user says: /mesh-quick-do, "执行", "do it", "make it happen".
+  快速执行计划或任务，无需用户确认执行过程。
+  当用户想要执行、运行或实施某事时触发。
+  触发词: "快速执行", "执行计划", "执行", "run plan", "do it", "implement this"。
 ---
 
-## What this skill does
+## 功能说明
 
-Executes plans or tasks in a single flow without intermediate confirmations. Automatically detects whether input is a plan or a task, generates plans if needed, and coordinates agent execution.
+一步执行计划或任务，无中间确认。自动检测输入是计划还是任务，需要时生成计划，并协调代理执行。
 
-## Usage
+## 使用方式
 
 ```
-/mesh-quick-do                    # Execute plan from context
-/mesh-quick-do <plan>             # Execute the specified plan
-/mesh-quick-do <task description> # Generate plan then execute
+/mesh-quick-do                    # 从上下文执行计划
+/mesh-quick-do <计划>             # 执行指定的计划
+/mesh-quick-do <任务描述>         # 生成计划后执行
 ```
 
-## Workflow
+## 工作流程
 
-### Step 1: Parse Input
+### 步骤 1: 解析输入
 
-1. **No arguments** → Check context for existing plan
-   - Check `.claude/plans/` for recent plans
-   - Check conversation history for plan content
-   - If no plan found: Tell user "未找到可执行的 plan，请提供任务或 plan"
+1. **无参数** → 检查上下文是否存在计划
+   - 检查 `.claude/plans/` 最近的计划文件
+   - 检查对话历史中的计划内容
+   - 未找到计划时提示用户: "未找到可执行的计划，请提供任务或计划"
 
-2. **Has arguments** → Classify input
-   - If input contains structured steps (numbered list, `## Steps`, etc.) → It's a **plan**, execute directly
-   - If input is a description/request → It's a **task**, generate plan first
+2. **有参数** → 分类输入
+   - 如果输入包含结构化步骤（编号列表、`## 步骤` 等）→ 是**计划**，直接执行
+   - 如果输入是描述/请求 → 是**任务**，先生成计划
 
-### Step 2: Generate Plan (if needed)
+### 步骤 2: 生成计划（如需要）
 
-If input is a task, invoke `/mesh-quick-plan` to generate plan, then proceed to execution.
+如果输入是任务，调用 `/mesh-quick-plan` 生成计划，然后继续执行。
 
-### Step 3: Execute Plan
+### 步骤 3: 执行计划
 
-Parse plan steps and assign to appropriate agents:
+解析计划步骤并分配给合适的代理:
 
-| Step Type | Agent |
-|-----------|-------|
-| Code implementation, refactoring | ecc:planner |
-| Build/compile issues | ecc:build-error-resolver |
-| Code review | ecc:code-reviewer |
-| Testing | ecc:tdd-guide |
-| Security | ecc:security-reviewer |
-| Performance | ecc:performance-optimizer |
-| Database | ecc:database-reviewer |
-| Documentation | ecc:doc-updater |
-| General/unknown | ecc:planner |
+| 步骤类型 | 代理 |
+|---------|------|
+| 代码实现、重构 | ecc:planner |
+| 构建/编译问题 | ecc:build-error-resolver |
+| 代码审查 | ecc:code-reviewer |
+| 测试 | ecc:tdd-guide |
+| 安全 | ecc:security-reviewer |
+| 性能 | ecc:performance-optimizer |
+| 数据库 | ecc:database-reviewer |
+| 文档 | ecc:doc-updater |
+| 通用/未知 | ecc:planner |
 
-### Step 4: Coordinate Execution
+### 步骤 4: 协调执行
 
-Execute steps sequentially or in parallel where possible:
+按顺序或并行执行步骤（视情况而定）:
 
-1. For each step, spawn appropriate agent with the task
-2. Wait for completion, capture results
-3. Pass context to next step if needed
-4. Continue until all steps complete
+1. 为每个步骤生成合适的代理并分配任务
+2. 等待完成，捕获结果
+3. 如需要，将上下文传递给下一步
+4. 继续直到所有步骤完成
 
-**No user confirmation during execution** - run to completion.
+**执行期间无需用户确认** - 直接运行至完成。
 
-### Step 5: Report Results
+### 步骤 5: 报告结果
 
-After all steps complete:
+所有步骤完成后:
 ```
-✓ Plan executed successfully
+✓ 计划执行成功
 
-Completed steps:
-1. [Step 1 description] ✓
-2. [Step 2 description] ✓
+已完成的步骤:
+1. [步骤 1 描述] ✓
+2. [步骤 2 描述] ✓
 ...
 
-Files modified: [list of files]
+修改的文件: [文件列表]
 ```
 
-## Input Classification
+## 输入分类
 
-### Plan Indicators (execute directly)
-- Contains `## Steps` or numbered list
-- Contains `1.`, `2.`, `3.` step markers
-- Contains `Overview`, `Dependencies`, `Risks` sections
-- Structured markdown with clear sections
+### 计划特征（直接执行）
+- 包含 `## 步骤` 或编号列表
+- 包含 `1.`, `2.`, `3.` 步骤标记
+- 包含 `概述`, `依赖`, `风险` 等章节
+- 结构化的 markdown，有清晰分段
 
-### Task Indicators (generate plan first)
-- Single sentence or paragraph
-- Describes what to do, not how
-- No structured steps
-- Request format: "add X", "implement Y", "create Z"
+### 任务特征（先生成计划）
+- 单句或单段落
+- 描述要做什么，而非怎么做
+- 无结构化步骤
+- 请求格式: "添加 X", "实现 Y", "创建 Z"
 
-## Context Plan Detection
+## 上下文计划检测
 
-Check for plans in this order:
-1. `.claude/plans/*.md` - most recent file
-2. Conversation history - look for plan-formatted content
-3. Current session - check if plan was just generated
+按以下顺序检查计划:
+1. `.claude/plans/*.md` - 最近的文件
+2. 对话历史 - 查找计划格式的内容
+3. 当前会话 - 检查是否刚生成了计划
 
-## Agent Coordination
+## 代理协调
 
-### Sequential Execution
-Steps that depend on previous results run sequentially:
+### 顺序执行
+依赖前一步结果的步骤按顺序运行:
 ```
-Step 1 → wait → Step 2 → wait → Step 3
-```
-
-### Parallel Execution
-Independent steps can run in parallel:
-```
-Step 1 ─┐
-Step 2 ─┼→ wait → combine results
-Step 3 ─┘
+步骤 1 → 等待 → 步骤 2 → 等待 → 步骤 3
 ```
 
-### Dependency Detection
-- If step mentions "after X" or "using result from Y" → sequential
-- If step modifies same files as another → sequential
-- Otherwise → can parallelize
+### 并行执行
+独立的步骤可以并行运行:
+```
+步骤 1 ─┐
+步骤 2 ─┼→ 等待 → 合并结果
+步骤 3 ─┘
+```
 
-## Example 1: Execute from Context
+### 依赖检测
+- 如果步骤提到"在 X 之后"或"使用 Y 的结果" → 顺序执行
+- 如果步骤修改与另一步骤相同的文件 → 顺序执行
+- 否则 → 可以并行
+
+## 示例 1: 从上下文执行
 
 ```
-User: /mesh-quick-do
+用户: /mesh-quick-do
 
-[Check context, find plan in .claude/plans/auth-plan.md]
+[检查上下文，在 .claude/plans/auth-plan.md 找到计划]
 
-Executing plan: User Authentication
+执行计划: 用户认证
 
-Step 1: Create auth module structure
-  → ecc:planner: "Create auth module structure at src/auth/"
-  → ✓ Created src/auth/, src/auth/types.ts
+步骤 1: 创建认证模块结构
+  → ecc:planner: "在 src/auth/ 创建认证模块结构"
+  → ✓ 创建 src/auth/, src/auth/types.ts
 
-Step 2: Implement JWT handling
-  → ecc:planner: "Implement JWT token management"
-  → ✓ Created src/auth/jwt.ts
+步骤 2: 实现 JWT 处理
+  → ecc:planner: "实现 JWT token 管理"
+  → ✓ 创建 src/auth/jwt.ts
 
-Step 3: Add login endpoint
-  → ecc:planner: "Create login API endpoint"
-  → ✓ Created src/api/auth.ts
+步骤 3: 添加登录端点
+  → ecc:planner: "创建登录 API 端点"
+  → ✓ 创建 src/api/auth.ts
 
-✓ Plan executed successfully
+✓ 计划执行成功
 
-Files created:
+创建的文件:
 - src/auth/types.ts
 - src/auth/jwt.ts
 - src/api/auth.ts
 ```
 
-## Example 2: Execute Task
+## 示例 2: 执行任务
 
 ```
-User: /mesh-quick-do 添加用户登录功能
+用户: /mesh-quick-do 添加用户登录功能
 
-[Input is task, not plan → generate plan first]
+[输入是任务，不是计划 → 先生成计划]
 
-Generating plan...
-Plan generated with 3 steps.
+生成计划中...
+计划已生成，共 3 个步骤。
 
-Executing plan...
+执行计划中...
 
-Step 1: Create auth module → ✓
-Step 2: Implement JWT → ✓
-Step 3: Add endpoint → ✓
+步骤 1: 创建认证模块 → ✓
+步骤 2: 实现 JWT → ✓
+步骤 3: 添加端点 → ✓
 
-✓ Plan executed successfully
+✓ 计划执行成功
 ```
 
-## Example 3: Execute Provided Plan
+## 示例 3: 执行提供的计划
 
 ```
-User: /mesh-quick-do
-# Plan: File Watcher
+用户: /mesh-quick-do
+# 计划: 文件监控器
 
-## Steps
-1. Create watcher module
-2. Implement file monitoring
-3. Add logging
+## 步骤
+1. 创建监控模块
+2. 实现文件监控
+3. 添加日志记录
 ---
 
-[Input is plan → execute directly]
+[输入是计划 → 直接执行]
 
-Executing plan...
+执行计划中...
 
-Step 1: Create watcher module → ✓
-Step 2: Implement monitoring → ✓
-Step 3: Add logging → ✓
+步骤 1: 创建监控模块 → ✓
+步骤 2: 实现监控 → ✓
+步骤 3: 添加日志 → ✓
 
-✓ Plan executed successfully
+✓ 计划执行成功
 ```
 
-## Error Handling
+## 错误处理
 
-- If step fails: Log error, attempt recovery, continue if possible
-- If critical failure: Stop, report what completed and what failed
-- Never ask user for confirmation during execution
+- 步骤失败时: 记录错误，尝试恢复，可能则继续
+- 严重失败时: 停止，报告已完成和失败的内容
+- 执行期间不向用户请求确认
 
-## Notes
+## 注意事项
 
-- This skill prioritizes speed over interactivity
-- All confirmations happen upfront (plan review) or at end (results)
-- For complex multi-agent coordination, steps run in optimal order
-- Agent selection can be overridden by step annotations (e.g., `[use: architect]`)
+- 此技能优先速度而非交互性
+- 所有确认发生在开始前（计划审查）或结束时（结果报告）
+- 复杂多代理协调时，步骤按最优顺序运行
+- 步骤注释可覆盖代理选择（如 `[使用: architect]`）
