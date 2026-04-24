@@ -25,6 +25,7 @@ cd MeshPilot
 |-------|-------------|
 | `/mesh-hello` | Greeting skill (template) |
 | `/mesh-quick-plan` | Quick planning without intermediate confirmation |
+| `/mesh-quick-do` | Execute plans or tasks without user confirmation |
 | `/mesh-update` | Update mesh-pilot |
 
 ## Adding New Skills

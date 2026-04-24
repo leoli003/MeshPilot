@@ -16,6 +16,7 @@
   "skills": [
     "./hello",
     "./quick-plan",
+    "./quick-do",
     "./update"
   ],
   "agents": []
