@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# mesh-pilot-config — manage mesh-pilot configuration
+set -e
+
+CONFIG_DIR="$HOME/.mesh-pilot"
+CONFIG_FILE="$CONFIG_DIR/config.json"
+
+usage() {
+  echo "Usage: mesh-pilot-config <command> [args]"
+  echo ""
+  echo "Commands:"
+  echo "  get <key>           Get config value"
+  echo "  set <key> <value>   Set config value"
+  echo "  list                List all config"
+  echo "  path                Show config file path"
+  exit 1
+}
+
+[ $# -lt 1 ] && usage
+
+cmd="$1"
+shift
+
+case "$cmd" in
+  get)
+    [ $# -lt 1 ] && { echo "Usage: mesh-pilot-config get <key>" >&2; exit 1; }
+    key="$1"
+    if [ -f "$CONFIG_FILE" ] && command -v jq >/dev/null 2>&1; then
+      jq -r ".$key // empty" "$CONFIG_FILE"
+    fi
+    ;;
+  set)
+    [ $# -lt 2 ] && { echo "Usage: mesh-pilot-config set <key> <value>" >&2; exit 1; }
+    key="$1"
+    value="$2"
+    mkdir -p "$CONFIG_DIR"
+    if [ -f "$CONFIG_FILE" ] && command -v jq >/dev/null 2>&1; then
+      tmp=$(mktemp)
+      jq --arg v "$value" ".${key} = \$v" "$CONFIG_FILE" > "$tmp" && mv "$tmp" "$CONFIG_FILE"
+    else
+      echo "{\"$key\": \"$value\"}" > "$CONFIG_FILE"
+    fi
+    ;;
+  list)
+    if [ -f "$CONFIG_FILE" ]; then
+      cat "$CONFIG_FILE"
+    else
+      echo "No config file found"
+    fi
+    ;;
+  path)
+    echo "$CONFIG_FILE"
+    ;;
+  *)
+    usage
+    ;;
+esac

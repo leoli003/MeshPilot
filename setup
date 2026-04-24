@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# mesh-pilot setup — install skills and configure Claude Code
+set -e
+umask 077  # Restrict new files to owner-only
+
+INSTALL_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+SKILLS_DIR="$HOME/.claude/skills"
+MESH_PILOT_DIR="$SKILLS_DIR/mesh-pilot"
+CONFIG_DIR="$HOME/.mesh-pilot"
+
+# ─── Parse flags ──────────────────────────────────────────────
+QUIET=0
+PREFIX="mesh-"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --no-prefix) PREFIX="" ; shift ;;
+    --prefix)    PREFIX="mesh-" ; shift ;;
+    -q|--quiet)  QUIET=1 ; shift ;;
+    *) shift ;;
+  esac
+done
+
+log() { [ "$QUIET" -eq 0 ] && echo "$@" || true; }
+
+# ─── OS detection ─────────────────────────────────────────────
+IS_WINDOWS=0
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*|Windows_NT) IS_WINDOWS=1 ;;
+esac
+
+log ""
+log "╭──────────────────────────────────────────────────────────────╮"
+log "│  mesh-pilot setup                                            │"
+log "│  Personal Claude Code skill pack                             │"
+log "╰──────────────────────────────────────────────────────────────╯"
+log ""
+
+# ─── Create directories ───────────────────────────────────────
+log "Creating directories..."
+mkdir -p "$SKILLS_DIR"
+mkdir -p "$CONFIG_DIR"
+mkdir -p "$CONFIG_DIR/sessions"
+
+# ─── Remove old installation if exists ────────────────────────
+if [ -d "$MESH_PILOT_DIR" ]; then
+  log "Removing previous installation..."
+  rm -rf "$MESH_PILOT_DIR"
+fi
+
+# ─── Copy skills ───────────────────────────────────────────────
+log "Installing skills to $MESH_PILOT_DIR..."
+cp -r "$INSTALL_DIR" "$MESH_PILOT_DIR"
+
+# ─── Create config ─────────────────────────────────────────────
+CONFIG_FILE="$CONFIG_DIR/config.json"
+log "Creating config file..."
+cat > "$CONFIG_FILE" << CONFIGEOF
+{
+  "version": "$(cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "unknown")",
+  "prefix": "$PREFIX",
+  "installed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "source_dir": "$INSTALL_DIR"
+}
+CONFIGEOF
+
+# ─── Add to PATH (optional) ────────────────────────────────────
+BIN_DIR="$MESH_PILOT_DIR/bin"
+if [ -d "$BIN_DIR" ]; then
+  log "Binaries available at: $BIN_DIR"
+fi
+
+# ─── Update check script ───────────────────────────────────────
+log "Setting up update mechanism..."
+
+# ─── Success ───────────────────────────────────────────────────
+log ""
+log "✓ mesh-pilot installed successfully!"
+log ""
+log "Skills installed:"
+for skill in "$MESH_PILOT_DIR"/*/SKILL.md; do
+  if [ -f "$skill" ]; then
+    skill_name=$(basename "$(dirname "$skill")")
+    log "  /${PREFIX}${skill_name}"
+  fi
+done
+log ""
+log "Config: $CONFIG_DIR"
+log ""
+log "To update: cd \"$INSTALL_DIR\" && git pull && ./setup"
+log "To uninstall: rm -rf \"$MESH_PILOT_DIR\" \"$CONFIG_DIR\""
+log ""

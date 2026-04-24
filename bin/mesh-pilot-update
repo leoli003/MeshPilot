@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# mesh-pilot-update — check for and apply updates
+set -e
+
+INSTALL_DIR="${MESH_PILOT_SOURCE:-$HOME/.claude/skills/mesh-pilot}"
+VERSION_FILE="$INSTALL_DIR/VERSION"
+CONFIG_DIR="$HOME/.mesh-pilot"
+
+get_current_version() {
+  if [ -f "$VERSION_FILE" ]; then
+    cat "$VERSION_FILE"
+  else
+    echo "unknown"
+  fi
+}
+
+echo "mesh-pilot update check"
+echo "======================"
+echo ""
+
+CURRENT=$(get_current_version)
+echo "Current version: $CURRENT"
+
+# Check if we're in a git repo
+if [ -d "$INSTALL_DIR/.git" ]; then
+  echo "Source: git repository"
+  echo ""
+
+  cd "$INSTALL_DIR"
+
+  # Fetch latest
+  echo "Checking for updates..."
+  git fetch origin 2>/dev/null || true
+
+  LOCAL=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+  REMOTE=$(git rev-parse '@{u}' 2>/dev/null || echo "unknown")
+
+  if [ "$LOCAL" != "$REMOTE" ]; then
+    echo ""
+    echo "Update available!"
+    echo ""
+    echo "Changes:"
+    git log --oneline HEAD..@{u} 2>/dev/null | head -10
+    echo ""
+    echo "To update:"
+    echo "  cd \"$INSTALL_DIR\""
+    echo "  git pull"
+    echo "  ./setup"
+  else
+    echo ""
+    echo "Already up to date."
+  fi
+else
+  echo "Source: local copy (no git)"
+  echo ""
+  echo "To update, re-download or sync from your source."
+fi

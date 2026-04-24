@@ -1,0 +1,17 @@
+# Claude Code skill directories
+.claude/
+
+# Config
+.mesh-pilot/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
