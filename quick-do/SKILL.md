@@ -37,19 +37,31 @@ description: |
 
 ### 步骤 3: 执行计划
 
-解析计划步骤并分配给合适的代理:
+解析计划步骤并根据步骤性质分配给合适的代理。
 
-| 步骤类型 | 代理 |
-|---------|------|
-| 代码实现、重构 | ecc:planner |
-| 构建/编译问题 | ecc:build-error-resolver |
-| 代码审查 | ecc:code-reviewer |
-| 测试 | ecc:tdd-guide |
-| 安全 | ecc:security-reviewer |
-| 性能 | ecc:performance-optimizer |
-| 数据库 | ecc:database-reviewer |
-| 文档 | ecc:doc-updater |
-| 通用/未知 | ecc:planner |
+**代理选择原则:**
+- 根据步骤内容分析需要的能力类型
+- 查看当前可用的代理列表，选择最适合的代理
+- 如无专用代理，使用通用代理（如 ecc:planner 或 Plan）
+
+**常见能力映射（仅供参考，以实际可用代理为准）:**
+
+| 能力类型 | 可能的代理 |
+|---------|-----------|
+| 代码实现、功能开发 | planner, feature-dev |
+| 构建错误修复 | build-resolver 系列 |
+| 代码审查 | code-reviewer 系列 |
+| 测试相关 | tdd-guide, testing 系列 |
+| 安全相关 | security-reviewer |
+| 性能优化 | performance-optimizer |
+| 数据库相关 | database-reviewer |
+| 文档相关 | doc-updater |
+
+**选择逻辑:**
+1. 分析步骤描述，识别关键词（如"测试"、"审查"、"构建"等）
+2. 从可用代理中匹配具有相应能力的代理
+3. 优先选择专用代理，其次选择通用代理
+4. 如无法确定，默认使用 ecc:planner 或 Plan
 
 ### 步骤 4: 协调执行
 
@@ -128,15 +140,15 @@ description: |
 执行计划: 用户认证
 
 步骤 1: 创建认证模块结构
-  → ecc:planner: "在 src/auth/ 创建认证模块结构"
+  → [分析: 代码实现] → 选择代理: planner
   → ✓ 创建 src/auth/, src/auth/types.ts
 
 步骤 2: 实现 JWT 处理
-  → ecc:planner: "实现 JWT token 管理"
+  → [分析: 代码实现] → 选择代理: planner
   → ✓ 创建 src/auth/jwt.ts
 
 步骤 3: 添加登录端点
-  → ecc:planner: "创建登录 API 端点"
+  → [分析: 代码实现] → 选择代理: planner
   → ✓ 创建 src/api/auth.ts
 
 ✓ 计划执行成功
