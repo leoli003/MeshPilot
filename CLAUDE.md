@@ -4,10 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-mesh-pilot is a personal Claude Code skill pack. Skills are installed to `~/.claude/skills/mesh-pilot/` and can be invoked with `/mesh-<skill-name>`.
+mesh-pilot is a personal Claude Code plugin pack. It supports both plugin market installation and manual setup.
 
-## Commands
+## Installation
 
+### Plugin Market (Recommended)
+```bash
+/install-plugin leoli003/mesh-pilot
+```
+
+### Manual Setup
 ```bash
 ./setup              # Install/update skills to ~/.claude/skills/mesh-pilot/
 ./setup --no-prefix  # Install without mesh- prefix (skills become /hello, /update)
@@ -17,11 +23,16 @@ mesh-pilot is a personal Claude Code skill pack. Skills are installed to `~/.cla
 
 ```
 mesh-pilot/
-├── setup            # Installation script (copies entire repo to ~/.claude/skills/mesh-pilot/)
-├── VERSION          # Current version
-├── bin/             # CLI tools (mesh-pilot-config, mesh-pilot-update)
-└── <skill>/         # Each skill is a directory with SKILL.md
-    └── SKILL.md     # Skill definition with YAML frontmatter
+├── .claude-plugin/
+│   ├── marketplace.json   # Plugin market configuration
+│   └── plugin.json        # Plugin definition (skills, agents references)
+├── setup                  # Manual installation script
+├── VERSION                # Current version
+├── bin/                   # CLI tools (mesh-pilot-config, mesh-pilot-update)
+├── <skill>/               # Each skill is a directory with SKILL.md
+│   └── SKILL.md           # Skill definition with YAML frontmatter
+└── agents/                # (Optional) Custom agents
+    └── <agent>.md         # Agent definition
 ```
 
 ## Skill Structure
@@ -32,7 +43,7 @@ Each skill directory contains a `SKILL.md` file:
 ---
 name: skill-name
 description: |
-  What this skill does.
+  What this skill does. Triggers when user says X, Y, Z.
 ---
 
 ## What this skill does
@@ -50,7 +61,30 @@ description: |
 
 1. Create directory: `mkdir my-skill`
 2. Add `SKILL.md` with YAML frontmatter (copy from `hello/` as template)
-3. Run `./setup` to reinstall
+3. Update `.claude-plugin/plugin.json` to include the new skill path
+4. Run `./setup` to reinstall (or push and reinstall via plugin market)
+
+## Adding a New Agent
+
+1. Create `agents/` directory if not exists
+2. Add `<agent-name>.md` with agent definition
+3. Update `.claude-plugin/plugin.json` to add agent path:
+   ```json
+   "agents": ["./agents/my-agent.md"]
+   ```
+
+## Plugin Configuration Files
+
+### marketplace.json
+Defines how the plugin appears in the market:
+- name, description, owner
+- plugin list with source paths
+
+### plugin.json
+Defines what the plugin contains:
+- `skills`: array of skill directory paths
+- `agents`: array of agent file paths
+- `commands`: array of command directory paths (optional)
 
 ## Config
 
@@ -65,5 +99,6 @@ mesh-pilot-config list
 
 ## Installation Paths
 
-- Skills: `~/.claude/skills/mesh-pilot/`
+- Plugin cache: `~/.claude/plugins/cache/leoli003/mesh-pilot/<version>/`
+- Skills: `~/.claude/skills/mesh-pilot/` (manual setup)
 - Config: `~/.mesh-pilot/`

@@ -1,12 +1,21 @@
 # mesh-pilot
 
-Personal Claude Code skill pack.
+Personal Claude Code skill pack for quick planning, updates, and common workflows.
 
 ## Installation
 
+### Method 1: Claude Code Plugin Market (Recommended)
+
 ```bash
-git clone https://github.com/YOUR_USERNAME/mesh-pilot.git
-cd mesh-pilot
+# In Claude Code, run:
+/install-plugin leoli003/mesh-pilot
+```
+
+### Method 2: Manual Installation
+
+```bash
+git clone https://github.com/leoli003/MeshPilot.git
+cd MeshPilot
 ./setup
 ```
 
@@ -15,6 +24,7 @@ cd mesh-pilot
 | Skill | Description |
 |-------|-------------|
 | `/mesh-hello` | Greeting skill (template) |
+| `/mesh-quick-plan` | Quick planning without intermediate confirmation |
 | `/mesh-update` | Update mesh-pilot |
 
 ## Adding New Skills

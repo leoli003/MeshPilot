@@ -1,0 +1,37 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "mesh-pilot",
+  "description": "Personal Claude Code skill pack for quick planning, updates, and common workflows",
+  "owner": {
+    "name": "leoli003",
+    "email": ""
+  },
+  "metadata": {
+    "description": "Personal skill pack with quick-plan, hello, and update skills"
+  },
+  "plugins": [
+    {
+      "name": "mesh-pilot",
+      "source": "./",
+      "description": "Personal Claude Code skill pack — quick planning without confirmation, skill updates, and greeting utilities",
+      "version": "0.1.0",
+      "author": {
+        "name": "leoli003"
+      },
+      "repository": "https://github.com/leoli003/MeshPilot",
+      "license": "MIT",
+      "keywords": [
+        "skills",
+        "quick-plan",
+        "planning",
+        "personal"
+      ],
+      "category": "workflow",
+      "tags": [
+        "skills",
+        "planning"
+      ],
+      "strict": false
+    }
+  ]
+}

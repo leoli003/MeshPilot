@@ -1,0 +1,22 @@
+{
+  "name": "mesh-pilot",
+  "version": "0.1.0",
+  "description": "Personal Claude Code skill pack — quick planning without confirmation, skill updates, and greeting utilities",
+  "author": {
+    "name": "leoli003"
+  },
+  "repository": "https://github.com/leoli003/MeshPilot",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "quick-plan",
+    "planning",
+    "personal"
+  ],
+  "skills": [
+    "./hello",
+    "./quick-plan",
+    "./update"
+  ],
+  "agents": []
+}
