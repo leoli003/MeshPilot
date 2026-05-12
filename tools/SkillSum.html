@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code 生态系统 - Agent / Command / Skill 汇总表</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@300;400;600;900&display=swap" rel="stylesheet">
+    <style>
+        /* ==================== 主题定义 ==================== */
+        :root {
+            /* 默认主题: 赛博霓虹 */
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --bg-hover: #22222e;
+            --accent-cyan: #00d4ff;
+            --accent-magenta: #ff0080;
+            --accent-gold: #ffd700;
+            --accent-green: #00ff88;
+            --accent-orange: #ff6b35;
+            --accent-purple: #a855f7;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888aa;
+            --text-muted: #555566;
+            --border-subtle: #2a2a3a;
+            --border-accent: #3a3a4a;
+            --glow-cyan: 0 0 20px rgba(0, 212, 255, 0.3);
+            --glow-magenta: 0 0 20px rgba(255, 0, 128, 0.3);
+            --header-gradient: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-cyan) 50%, var(--accent-magenta) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 0, 128, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+            --theme-name: 'cyber-neon';
+        }
+
+        /* 主题1: 深海幽蓝 */
+        [data-theme="ocean-deep"] {
+            --bg-primary: #0a1628;
+            --bg-secondary: #0d1e36;
+            --bg-card: #132744;
+            --bg-hover: #1a3358;
+            --accent-cyan: #00b4d8;
+            --accent-magenta: #48cae4;
+            --accent-gold: #90e0ef;
+            --accent-green: #00f5d4;
+            --accent-orange: #fee440;
+            --accent-purple: #9b5de5;
+            --text-primary: #caf0f8;
+            --text-secondary: #90e0ef;
+            --text-muted: #48cae4;
+            --border-subtle: #1a3358;
+            --border-accent: #234e70;
+            --glow-cyan: 0 0 20px rgba(0, 180, 216, 0.4);
+            --glow-magenta: 0 0 20px rgba(72, 202, 228, 0.3);
+            --header-gradient: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-cyan) 50%, var(--accent-green) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 180, 216, 0.2) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(72, 202, 228, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0, 245, 212, 0.1) 0%, transparent 50%);
+        }
+
+        /* 主题2: 极光幻彩 */
+        [data-theme="aurora"] {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-hover: #1f3460;
+            --accent-cyan: #4cc9f0;
+            --accent-magenta: #f72585;
+            --accent-gold: #fca311;
+            --accent-green: #06d6a0;
+            --accent-orange: #ff6b35;
+            --accent-purple: #7209b7;
+            --text-primary: #edf2f4;
+            --text-secondary: #8d99ae;
+            --text-muted: #5c677d;
+            --border-subtle: #2b2d42;
+            --border-accent: #3d405b;
+            --glow-cyan: 0 0 25px rgba(76, 201, 240, 0.4);
+            --glow-magenta: 0 0 25px rgba(247, 37, 133, 0.4);
+            --header-gradient: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-purple) 50%, var(--accent-magenta) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(76, 201, 240, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(114, 9, 183, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(247, 37, 133, 0.1) 0%, transparent 50%);
+        }
+
+        /* 主题3: 森林秘境 */
+        [data-theme="forest"] {
+            --bg-primary: #0d1b0e;
+            --bg-secondary: #142613;
+            --bg-card: #1a3319;
+            --bg-hover: #234020;
+            --accent-cyan: #95d5b2;
+            --accent-magenta: #52b788;
+            --accent-gold: #b7e4c7;
+            --accent-green: #40916c;
+            --accent-orange: #d4a373;
+            --accent-purple: #74c69d;
+            --text-primary: #d8f3dc;
+            --text-secondary: #95d5b2;
+            --text-muted: #52b788;
+            --border-subtle: #234020;
+            --border-accent: #2d5a2e;
+            --glow-cyan: 0 0 20px rgba(149, 213, 178, 0.4);
+            --glow-magenta: 0 0 20px rgba(82, 183, 136, 0.4);
+            --header-gradient: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-cyan) 50%, var(--accent-green) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(149, 213, 178, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(64, 145, 108, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(82, 183, 136, 0.1) 0%, transparent 50%);
+        }
+
+        /* 主题4: 日落黄昏 */
+        [data-theme="sunset"] {
+            --bg-primary: #1a0a0a;
+            --bg-secondary: #2d1111;
+            --bg-card: #3d1a1a;
+            --bg-hover: #4d2525;
+            --accent-cyan: #ff6b6b;
+            --accent-magenta: #ff8e53;
+            --accent-gold: #ffc857;
+            --accent-green: #48bb78;
+            --accent-orange: #ed8936;
+            --accent-purple: #e53e3e;
+            --text-primary: #fff5f5;
+            --text-secondary: #feb2b2;
+            --text-muted: #fc8181;
+            --border-subtle: #4d2525;
+            --border-accent: #6b3030;
+            --glow-cyan: 0 0 20px rgba(255, 107, 107, 0.4);
+            --glow-magenta: 0 0 20px rgba(255, 142, 83, 0.4);
+            --header-gradient: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-orange) 50%, var(--accent-cyan) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(255, 200, 87, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(237, 137, 54, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255, 107, 107, 0.1) 0%, transparent 50%);
+        }
+
+        /* 主题5: 午夜紫罗兰 */
+        [data-theme="midnight-violet"] {
+            --bg-primary: #0f0a1a;
+            --bg-secondary: #1a1128;
+            --bg-card: #251840;
+            --bg-hover: #332054;
+            --accent-cyan: #a78bfa;
+            --accent-magenta: #c084fc;
+            --accent-gold: #e879f9;
+            --accent-green: #34d399;
+            --accent-orange: #fb923c;
+            --accent-purple: #8b5cf6;
+            --text-primary: #f3e8ff;
+            --text-secondary: #c4b5fd;
+            --text-muted: #a78bfa;
+            --border-subtle: #332054;
+            --border-accent: #4c1d95;
+            --glow-cyan: 0 0 20px rgba(167, 139, 250, 0.5);
+            --glow-magenta: 0 0 20px rgba(192, 132, 252, 0.5);
+            --header-gradient: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-purple) 50%, var(--accent-magenta) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(192, 132, 252, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(232, 121, 249, 0.1) 0%, transparent 50%);
+        }
+
+        /* 主题6: 咖啡时光 */
+        [data-theme="coffee"] {
+            --bg-primary: #1a1410;
+            --bg-secondary: #261e18;
+            --bg-card: #332820;
+            --bg-hover: #403528;
+            --accent-cyan: #d4a574;
+            --accent-magenta: #c4956a;
+            --accent-gold: #e8d4b8;
+            --accent-green: #8fbc8f;
+            --accent-orange: #cd853f;
+            --accent-purple: #b8860b;
+            --text-primary: #f5f0e8;
+            --text-secondary: #d4c4b0;
+            --text-muted: #a89080;
+            --border-subtle: #403528;
+            --border-accent: #5a4a3a;
+            --glow-cyan: 0 0 20px rgba(212, 165, 116, 0.4);
+            --glow-magenta: 0 0 20px rgba(196, 149, 106, 0.4);
+            --header-gradient: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-cyan) 50%, var(--accent-orange) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(212, 165, 116, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(205, 133, 63, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(232, 212, 184, 0.08) 0%, transparent 50%);
+        }
+
+        /* 主题7: 极简白 */
+        [data-theme="minimal-light"] {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-card: #f5f5f5;
+            --bg-hover: #eeeeee;
+            --accent-cyan: #0066cc;
+            --accent-magenta: #cc0066;
+            --accent-gold: #cc8800;
+            --accent-green: #00875a;
+            --accent-orange: #de350b;
+            --accent-purple: #6554c0;
+            --text-primary: #172b4d;
+            --text-secondary: #5e6c84;
+            --text-muted: #97a0af;
+            --border-subtle: #dfe1e6;
+            --border-accent: #c1c7d0;
+            --glow-cyan: 0 0 15px rgba(0, 102, 204, 0.2);
+            --glow-magenta: 0 0 15px rgba(204, 0, 102, 0.2);
+            --header-gradient: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-cyan) 50%, var(--accent-magenta) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 102, 204, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(204, 0, 102, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(101, 84, 192, 0.03) 0%, transparent 50%);
+        }
+
+        /* 主题8: 赛博朋克 */
+        [data-theme="cyberpunk"] {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-card: #1a1a1a;
+            --bg-hover: #252525;
+            --accent-cyan: #00fff0;
+            --accent-magenta: #ff00ff;
+            --accent-gold: #ffff00;
+            --accent-green: #00ff41;
+            --accent-orange: #ff6600;
+            --accent-purple: #bf00ff;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
+            --border-subtle: #333333;
+            --border-accent: #444444;
+            --glow-cyan: 0 0 30px rgba(0, 255, 240, 0.5);
+            --glow-magenta: 0 0 30px rgba(255, 0, 255, 0.5);
+            --header-gradient: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-gold) 50%, var(--accent-magenta) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 255, 240, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 0, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255, 255, 0, 0.1) 0%, transparent 50%);
+        }
+
+        /* 主题9: 玫瑰金 */
+        [data-theme="rose-gold"] {
+            --bg-primary: #1a1416;
+            --bg-secondary: #231c1e;
+            --bg-card: #2e2528;
+            --bg-hover: #3a2e32;
+            --accent-cyan: #e8b4b8;
+            --accent-magenta: #d4a0a5;
+            --accent-gold: #f7d5d7;
+            --accent-green: #8ab4a8;
+            --accent-orange: #d4a574;
+            --accent-purple: #b8869b;
+            --text-primary: #fff0f1;
+            --text-secondary: #e8b4b8;
+            --text-muted: #c0868c;
+            --border-subtle: #3a2e32;
+            --border-accent: #4a3a3e;
+            --glow-cyan: 0 0 20px rgba(232, 180, 184, 0.4);
+            --glow-magenta: 0 0 20px rgba(212, 160, 165, 0.4);
+            --header-gradient: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-cyan) 50%, var(--accent-orange) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(232, 180, 184, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(212, 160, 165, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(247, 213, 215, 0.08) 0%, transparent 50%);
+        }
+
+        /* 主题10: 星空深邃 */
+        [data-theme="starry-night"] {
+            --bg-primary: #0a0d14;
+            --bg-secondary: #0d1117;
+            --bg-card: #151b23;
+            --bg-hover: #1c242e;
+            --accent-cyan: #58a6ff;
+            --accent-magenta: #f778ba;
+            --accent-gold: #d29922;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-purple: #a371f7;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --border-subtle: #21262d;
+            --border-accent: #30363d;
+            --glow-cyan: 0 0 20px rgba(88, 166, 255, 0.4);
+            --glow-magenta: 0 0 20px rgba(247, 120, 186, 0.4);
+            --header-gradient: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-purple) 50%, var(--accent-magenta) 100%);
+            --bg-pattern-colors: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(88, 166, 255, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(163, 113, 247, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(247, 120, 186, 0.08) 0%, transparent 50%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .bg-pattern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-pattern-colors);
+            animation: bgPulse 20s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Noise texture overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+        }
+
+        /* Header - 隐藏顶部的空header */
+        header {
+            display: none;
+        }
+
+        .header-badge {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 0.5rem 1.5rem;
+            border-radius: 100px;
+            margin-bottom: 1.5rem;
+            animation: badgeGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes badgeGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); }
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            background: var(--header-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 8s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stats-bar-bottom {
+            margin: 3rem 0 2rem;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        /* 底部标题区 */
+        .header-bottom {
+            text-align: center;
+            padding: 2rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .header-bottom .header-badge {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 0.5rem 1.5rem;
+            border-radius: 100px;
+            margin-bottom: 1rem;
+        }
+
+        .header-bottom h1 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+            background: var(--header-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-bottom .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Filter section */
+        .filter-section {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .filter-btn.active {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .filter-btn[data-filter="agent"] { --btn-accent: var(--accent-cyan); }
+        .filter-btn[data-filter="command"] { --btn-accent: var(--accent-magenta); }
+        .filter-btn[data-filter="skill"] { --btn-accent: var(--accent-green); }
+
+        .filter-btn.active[data-filter="agent"] {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+        .filter-btn.active[data-filter="command"] {
+            background: rgba(255, 0, 128, 0.15);
+            border-color: var(--accent-magenta);
+            color: var(--accent-magenta);
+        }
+        .filter-btn.active[data-filter="skill"] {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        /* Source filter */
+        .source-filter {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0 1rem;
+            flex-wrap: wrap;
+        }
+
+        .source-btn {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.8rem;
+            background: transparent;
+            border: 1px solid var(--border-accent);
+            border-radius: 6px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .source-btn:hover, .source-btn.active {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        /* Table container */
+        .table-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            padding: 1rem 1.2rem;
+            text-align: left;
+            border-bottom: 2px solid var(--border-accent);
+            white-space: nowrap;
+        }
+
+        th:first-child {
+            border-top-left-radius: 16px;
+        }
+
+        th:last-child {
+            border-top-right-radius: 16px;
+        }
+
+        td {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--border-subtle);
+            vertical-align: top;
+        }
+
+        tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-hover);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Type badges */
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.3rem 0.7rem;
+            border-radius: 4px;
+        }
+
+        .type-badge.agent {
+            background: rgba(0, 212, 255, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .type-badge.command {
+            background: rgba(255, 0, 128, 0.15);
+            color: var(--accent-magenta);
+            border: 1px solid rgba(255, 0, 128, 0.3);
+        }
+
+        .type-badge.skill {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .type-icon {
+            font-size: 0.9em;
+        }
+
+        /* Source badges */
+        .source-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            white-space: nowrap;
+        }
+
+        /* Category styling */
+        .category {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .subcategory {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+        }
+
+        /* Command code styling */
+        .command-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-gold);
+            background: rgba(255, 215, 0, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Description */
+        .description {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            max-width: 400px;
+        }
+
+        /* Example styling */
+        .example-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent-purple);
+            background: rgba(168, 85, 247, 0.1);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            display: inline-block;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Row number */
+        .row-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        footer a:hover {
+            color: var(--accent-magenta);
+        }
+
+        /* Group header rows */
+        tr.group-header {
+            background: var(--bg-card);
+        }
+
+        tr.group-header td {
+            padding: 0.8rem 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-accent);
+        }
+
+        tr.group-header td:first-child {
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        /* Hidden rows for filtering */
+        tr.hidden {
+            display: none;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-accent);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header {
+                padding: 2rem 0;
+            }
+
+            .stats-bar {
+                gap: 1rem;
+            }
+
+            .stat-item {
+                padding: 0.8rem 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            th, td {
+                padding: 0.8rem;
+                font-size: 0.8rem;
+            }
+
+            .description {
+                max-width: 200px;
+            }
+        }
+
+        /* Search box */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin: 0.5rem 0;
+        }
+
+        .search-bottom {
+            margin: 1rem 0 0;
+        }
+
+        .search-box {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            padding: 0.8rem 1.5rem;
+            width: 100%;
+            max-width: 500px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .search-box::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* ==================== 主题切换器 ==================== */
+        .theme-switcher {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .theme-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-right: 0.5rem;
+        }
+
+        .theme-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--border-subtle);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.15);
+            border-color: var(--text-secondary);
+        }
+
+        .theme-btn.active {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .theme-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+        }
+
+        .theme-btn[data-theme="cyber-neon"]::before {
+            background: linear-gradient(135deg, #00d4ff 0%, #ff0080 100%);
+        }
+
+        .theme-btn[data-theme="ocean-deep"]::before {
+            background: linear-gradient(135deg, #00b4d8 0%, #00f5d4 100%);
+        }
+
+        .theme-btn[data-theme="aurora"]::before {
+            background: linear-gradient(135deg, #4cc9f0 0%, #f72585 50%, #7209b7 100%);
+        }
+
+        .theme-btn[data-theme="forest"]::before {
+            background: linear-gradient(135deg, #95d5b2 0%, #40916c 100%);
+        }
+
+        .theme-btn[data-theme="sunset"]::before {
+            background: linear-gradient(135deg, #ffc857 0%, #ff6b6b 100%);
+        }
+
+        .theme-btn[data-theme="midnight-violet"]::before {
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+        }
+
+        .theme-btn[data-theme="coffee"]::before {
+            background: linear-gradient(135deg, #d4a574 0%, #8fbc8f 100%);
+        }
+
+        .theme-btn[data-theme="minimal-light"]::before {
+            background: linear-gradient(135deg, #ffffff 0%, #0066cc 100%);
+        }
+
+        .theme-btn[data-theme="cyberpunk"]::before {
+            background: linear-gradient(135deg, #00fff0 0%, #ff00ff 50%, #ffff00 100%);
+        }
+
+        .theme-btn[data-theme="rose-gold"]::before {
+            background: linear-gradient(135deg, #e8b4b8 0%, #d4a574 100%);
+        }
+
+        .theme-btn[data-theme="starry-night"]::before {
+            background: linear-gradient(135deg, #58a6ff 0%, #a371f7 50%, #f778ba 100%);
+        }
+
+        /* 主题名称提示 */
+        .theme-btn[title] {
+            position: relative;
+        }
+
+        .theme-name-tooltip {
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .theme-btn:hover .theme-name-tooltip {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="noise-overlay"></div>
+
+    <div class="container">
+        <header>
+            <!-- 标题已移至底部 -->
+        </header>
+
+        <!-- 主题切换器 -->
+        <div class="theme-switcher">
+            <span class="theme-label">🎨 切换主题:</span>
+            <button class="theme-btn active" data-theme="cyber-neon" title="赛博霓虹">
+                <span class="theme-name-tooltip">赛博霓虹</span>
+            </button>
+            <button class="theme-btn" data-theme="ocean-deep" title="深海幽蓝">
+                <span class="theme-name-tooltip">深海幽蓝</span>
+            </button>
+            <button class="theme-btn" data-theme="aurora" title="极光幻彩">
+                <span class="theme-name-tooltip">极光幻彩</span>
+            </button>
+            <button class="theme-btn" data-theme="forest" title="森林秘境">
+                <span class="theme-name-tooltip">森林秘境</span>
+            </button>
+            <button class="theme-btn" data-theme="sunset" title="日落黄昏">
+                <span class="theme-name-tooltip">日落黄昏</span>
+            </button>
+            <button class="theme-btn" data-theme="midnight-violet" title="午夜紫罗兰">
+                <span class="theme-name-tooltip">午夜紫罗兰</span>
+            </button>
+            <button class="theme-btn" data-theme="coffee" title="咖啡时光">
+                <span class="theme-name-tooltip">咖啡时光</span>
+            </button>
+            <button class="theme-btn" data-theme="minimal-light" title="极简白">
+                <span class="theme-name-tooltip">极简白</span>
+            </button>
+            <button class="theme-btn" data-theme="cyberpunk" title="赛博朋克">
+                <span class="theme-name-tooltip">赛博朋克</span>
+            </button>
+            <button class="theme-btn" data-theme="rose-gold" title="玫瑰金">
+                <span class="theme-name-tooltip">玫瑰金</span>
+            </button>
+            <button class="theme-btn" data-theme="starry-night" title="星空深邃">
+                <span class="theme-name-tooltip">星空深邃</span>
+            </button>
+        </div>
+
+        <div class="filter-section">
+            <button class="filter-btn active" data-filter="all">全部</button>
+            <button class="filter-btn" data-filter="agent">Agent</button>
+            <button class="filter-btn" data-filter="command">Command</button>
+            <button class="filter-btn" data-filter="skill">Skill</button>
+        </div>
+
+        <div class="source-filter" id="sourceFilter">
+            <!-- Will be populated by JS -->
+        </div>
+
+        <div class="table-container">
+            <div class="table-scroll">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>项目</th>
+                            <th>大类</th>
+                            <th>子类</th>
+                            <th>出处</th>
+                            <th>命令</th>
+                            <th>示例</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Will be populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 统计栏移至底部 -->
+        <div class="stats-bar stats-bar-bottom">
+            <div class="stat-item">
+                <span class="stat-value" id="total-count">0</span>
+                <span class="stat-label">总条目</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="agent-count">0</span>
+                <span class="stat-label">Agents</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="command-count">0</span>
+                <span class="stat-label">Commands</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="skill-count">0</span>
+                <span class="stat-label">Skills</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">12</span>
+                <span class="stat-label">数据源</span>
+            </div>
+        </div>
+
+        <!-- 标题区移至底部 -->
+        <div class="header-bottom">
+            <div class="header-badge">Claude Code Ecosystem</div>
+            <h1>Agent / Command / Skill 汇总表</h1>
+            <p class="subtitle">全面收录 Claude Code 生态系统中的代理、命令与技能，助力开发者高效工作</p>
+        </div>
+
+        <!-- 搜索栏移至底部 -->
+        <div class="search-container search-bottom">
+            <input type="text" class="search-box" id="searchInput" placeholder="搜索命令、描述或示例...">
+        </div>
+
+        <footer>
+            <p>数据来源：GitHub 开源项目 | 生成时间：2026-04-26</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code</a> •
+                <a href="https://github.com/Yeachan-Heo/oh-my-claudecode" target="_blank">oh-my-claudecode</a> •
+                <a href="https://github.com/garrytan/gstack" target="_blank">GStack</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // All data collected from the sources
+        const allData = [
+            // ============ Agency Agents (147 agents) ============
+            { type: 'agent', category: '软件开发', subcategory: '前端开发', source: 'agency-agents', command: 'Frontend Developer', example: 'React/Vue/Angular UI 实现', description: '现代Web应用、像素级UI、Core Web Vitals优化' },
+            { type: 'agent', category: '软件开发', subcategory: '后端架构', source: 'agency-agents', command: 'Backend Architect', example: 'API设计、微服务架构', description: '服务端系统、微服务、云基础设施' },
+            { type: 'agent', category: '软件开发', subcategory: '移动开发', source: 'agency-agents', command: 'Mobile App Builder', example: 'iOS/Android/React Native', description: '原生和跨平台移动应用开发' },
+            { type: 'agent', category: '软件开发', subcategory: 'AI/ML', source: 'agency-agents', command: 'AI Engineer', example: 'ML模型部署、AI集成', description: '机器学习功能、数据管道、AI驱动应用' },
+            { type: 'agent', category: '运维开发', subcategory: 'DevOps', source: 'agency-agents', command: 'DevOps Automator', example: 'CI/CD、基础设施自动化', description: '管道开发、部署自动化、监控' },
+            { type: 'agent', category: '软件开发', subcategory: '快速原型', source: 'agency-agents', command: 'Rapid Prototyper', example: 'POC开发、MVP', description: '快速验证概念、黑客马拉松项目' },
+            { type: 'agent', category: '软件开发', subcategory: 'PHP开发', source: 'agency-agents', command: 'Senior Developer', example: 'Laravel/Livewire高级模式', description: '复杂实现、架构决策' },
+            { type: 'agent', category: '软件开发', subcategory: 'PHP开发', source: 'agency-agents', command: 'Filament Optimization Specialist', example: 'Filament PHP后台优化', description: '重构Filament资源/表单/表格' },
+            { type: 'agent', category: '安全', subcategory: '应用安全', source: 'agency-agents', command: 'Security Engineer', example: '威胁建模、安全代码审查', description: '应用安全、漏洞评估、安全CI/CD' },
+            { type: 'agent', category: 'AI/ML', subcategory: '优化', source: 'agency-agents', command: 'Autonomous Optimization Architect', example: 'LLM路由、成本优化', description: '智能API选择、成本优化系统' },
+            { type: 'agent', category: '嵌入式', subcategory: '固件开发', source: 'agency-agents', command: 'Embedded Firmware Engineer', example: 'ESP32/STM32/Nordic固件', description: '生产级嵌入式系统和物联网设备' },
+            { type: 'agent', category: '运维开发', subcategory: '事件响应', source: 'agency-agents', command: 'Incident Response Commander', example: '生产事故管理', description: '管理生产事故、事后分析' },
+            { type: 'agent', category: '区块链', subcategory: '智能合约', source: 'agency-agents', command: 'Solidity Smart Contract Engineer', example: 'EVM合约、DeFi协议', description: '安全、Gas优化的智能合约' },
+            { type: 'agent', category: '开发工具', subcategory: '代码导航', source: 'agency-agents', command: 'Codebase Onboarding Engineer', example: '快速理解陌生代码库', description: '帮助新开发者快速上手' },
+            { type: 'agent', category: '文档', subcategory: '技术写作', source: 'agency-agents', command: 'Technical Writer', example: 'API文档、教程', description: '清晰、准确的技术文档' },
+            { type: 'agent', category: '安全', subcategory: '威胁检测', source: 'agency-agents', command: 'Threat Detection Engineer', example: 'SIEM规则、威胁狩猎', description: '构建检测层和威胁狩猎' },
+            { type: 'agent', category: '移动开发', subcategory: '微信生态', source: 'agency-agents', command: 'WeChat Mini Program Developer', example: '微信小程序、支付集成', description: '微信生态系统应用开发' },
+            { type: 'agent', category: '代码审核', subcategory: '质量审查', source: 'agency-agents', command: 'Code Reviewer', example: 'PR审查、质量门禁', description: '建设性代码审查、安全、可维护性' },
+            { type: 'agent', category: '数据库', subcategory: '优化', source: 'agency-agents', command: 'Database Optimizer', example: 'PostgreSQL/MySQL调优', description: 'Schema设计、查询优化、索引策略' },
+            { type: 'agent', category: '开发工具', subcategory: '版本控制', source: 'agency-agents', command: 'Git Workflow Master', example: '分支策略、Conventional Commits', description: 'Git工作流设计、历史清理' },
+            { type: 'agent', category: '软件开发', subcategory: '架构', source: 'agency-agents', command: 'Software Architect', example: 'DDD、架构模式', description: '系统设计、领域建模、架构演进' },
+            { type: 'agent', category: '运维开发', subcategory: '可靠性', source: 'agency-agents', command: 'SRE', example: 'SLO、可观测性', description: '生产可靠性、容量规划' },
+            { type: 'agent', category: 'AI/ML', subcategory: '数据修复', source: 'agency-agents', command: 'AI Data Remediation Engineer', example: '自愈管道、数据修复', description: '大规模数据修复、零数据丢失' },
+            { type: 'agent', category: '数据工程', subcategory: '管道', source: 'agency-agents', command: 'Data Engineer', example: 'ETL/ELT、数仓', description: '可靠数据基础设施构建' },
+            { type: 'agent', category: '企业集成', subcategory: '飞书', source: 'agency-agents', command: 'Feishu Integration Developer', example: '飞书/飞书机器人', description: '飞书生态集成开发' },
+            { type: 'agent', category: '软件开发', subcategory: 'CMS', source: 'agency-agents', command: 'CMS Developer', example: 'WordPress/Drupal', description: '代码优先CMS实现' },
+            { type: 'agent', category: '数据处理', subcategory: '邮件解析', source: 'agency-agents', command: 'Email Intelligence Engineer', example: '邮件线程解析', description: '原始邮件转结构化数据' },
+            { type: 'agent', category: 'AI/ML', subcategory: '语音处理', source: 'agency-agents', command: 'Voice AI Integration Engineer', example: 'Whisper、ASR', description: '端到端语音转录管道' },
+            // Design Division
+            { type: 'agent', category: '设计', subcategory: 'UI设计', source: 'agency-agents', command: 'UI Designer', example: '视觉设计、组件库', description: '界面创建、品牌一致性、组件设计' },
+            { type: 'agent', category: '设计', subcategory: 'UX研究', source: 'agency-agents', command: 'UX Researcher', example: '用户测试、行为分析', description: '理解用户、可用性测试' },
+            { type: 'agent', category: '设计', subcategory: 'UX架构', source: 'agency-agents', command: 'UX Architect', example: '技术架构、CSS系统', description: '开发者友好的基础架构' },
+            { type: 'agent', category: '设计', subcategory: '品牌', source: 'agency-agents', command: 'Brand Guardian', example: '品牌身份、一致性', description: '品牌策略、身份开发' },
+            { type: 'agent', category: '设计', subcategory: '视觉叙事', source: 'agency-agents', command: 'Visual Storyteller', example: '视觉叙事、多媒体', description: '引人入胜的视觉故事' },
+            { type: 'agent', category: '设计', subcategory: '趣味设计', source: 'agency-agents', command: 'Whimsy Injector', example: '微交互、彩蛋', description: '添加愉悦感、品牌个性' },
+            { type: 'agent', category: '设计', subcategory: 'AI图像', source: 'agency-agents', command: 'Image Prompt Engineer', example: 'Midjourney/DALL-E提示', description: 'AI图像生成提示工程' },
+            { type: 'agent', category: '设计', subcategory: '包容性', source: 'agency-agents', command: 'Inclusive Visuals Specialist', example: '代表性、偏见缓解', description: '生成文化准确的AI图像' },
+            // Paid Media Division
+            { type: 'agent', category: '付费媒体', subcategory: 'PPC', source: 'agency-agents', command: 'PPC Campaign Strategist', example: 'Google/Microsoft/Amazon Ads', description: '账户架构、竞价策略、规模化' },
+            { type: 'agent', category: '付费媒体', subcategory: '搜索分析', source: 'agency-agents', command: 'Search Query Analyst', example: '搜索词分析、否定关键词', description: '查询审计、浪费消除' },
+            { type: 'agent', category: '付费媒体', subcategory: '审计', source: 'agency-agents', command: 'Paid Media Auditor', example: '200+点账户审计', description: '账户接管、季度审查' },
+            { type: 'agent', category: '付费媒体', subcategory: '追踪', source: 'agency-agents', command: 'Tracking & Measurement Specialist', example: 'GTM、GA4、转化追踪', description: '新实施、追踪审计' },
+            { type: 'agent', category: '付费媒体', subcategory: '创意', source: 'agency-agents', command: 'Ad Creative Strategist', example: 'RSA文案、Meta创意', description: '创意启动、测试程序' },
+            { type: 'agent', category: '付费媒体', subcategory: '程序化', source: 'agency-agents', command: 'Programmatic & Display Buyer', example: 'GDN、DSP、ABM展示', description: '展示规划、ABM项目' },
+            { type: 'agent', category: '付费媒体', subcategory: '社交广告', source: 'agency-agents', command: 'Paid Social Strategist', example: 'Meta、LinkedIn、TikTok', description: '社交广告项目、平台选择' },
+            // Sales Division
+            { type: 'agent', category: '销售', subcategory: '外呼', source: 'agency-agents', command: 'Outbound Strategist', example: '信号驱动式外呼', description: '研究驱动的外呼，而非数量' },
+            { type: 'agent', category: '销售', subcategory: '发现', source: 'agency-agents', command: 'Discovery Coach', example: 'SPIN、Gap Selling', description: '发现电话准备、机会资格' },
+            { type: 'agent', category: '销售', subcategory: '交易策略', source: 'agency-agents', command: 'Deal Strategist', example: 'MEDDPICC资格', description: '交易评分、管道风险暴露' },
+            { type: 'agent', category: '销售', subcategory: '售前技术', source: 'agency-agents', command: 'Sales Engineer', example: '技术演示、POC范围', description: '售前技术胜利、竞品定位' },
+            { type: 'agent', category: '销售', subcategory: '提案', source: 'agency-agents', command: 'Proposal Strategist', example: 'RFP响应、赢的主题', description: '撰写说服性提案' },
+            { type: 'agent', category: '销售', subcategory: '管道分析', source: 'agency-agents', command: 'Pipeline Analyst', example: '预测、管道健康', description: '管道审查、收入运营' },
+            { type: 'agent', category: '销售', subcategory: '客户战略', source: 'agency-agents', command: 'Account Strategist', example: 'Land-and-expand', description: '售后扩展、客户规划' },
+            { type: 'agent', category: '销售', subcategory: '销售辅导', source: 'agency-agents', command: 'Sales Coach', example: '代表发展、通话辅导', description: '结构化销售辅导' },
+            { type: 'agent', category: '销售', subcategory: '外呼', source: 'agency-agents', command: 'Sales Outreach', example: '冷启动外呼、多触点', description: '漏斗顶部B2B外呼' },
+            // Marketing Division
+            { type: 'agent', category: '营销', subcategory: '增长', source: 'agency-agents', command: 'Growth Hacker', example: '病毒式增长、实验', description: '爆炸式增长、用户获取' },
+            { type: 'agent', category: '营销', subcategory: '内容', source: 'agency-agents', command: 'Content Creator', example: '多平台内容、编辑日历', description: '内容策略、文案撰写' },
+            { type: 'agent', category: '营销', subcategory: '社交媒体', source: 'agency-agents', command: 'Twitter Engager', example: '实时互动、思想领导', description: 'Twitter策略、LinkedIn活动' },
+            { type: 'agent', category: '营销', subcategory: '社交媒体', source: 'agency-agents', command: 'TikTok Strategist', example: '病毒内容、算法优化', description: 'TikTok增长、Gen Z受众' },
+            { type: 'agent', category: '营销', subcategory: '社交媒体', source: 'agency-agents', command: 'Instagram Curator', example: '视觉叙事、社区建设', description: 'Instagram策略、美学开发' },
+            { type: 'agent', category: '营销', subcategory: '社区', source: 'agency-agents', command: 'Reddit Community Builder', example: '真实互动、价值驱动', description: 'Reddit策略、社区信任' },
+            { type: 'agent', category: '营销', subcategory: 'ASO', source: 'agency-agents', command: 'App Store Optimizer', example: 'ASO、转化优化', description: 'App营销、商店优化' },
+            { type: 'agent', category: '营销', subcategory: '社交媒体', source: 'agency-agents', command: 'Social Media Strategist', example: '跨平台策略、活动', description: '整体社交策略' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'Xiaohongshu Specialist', example: '生活方式内容、趋势策略', description: '小红书增长、美学叙事' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'WeChat Official Account Manager', example: '订阅者互动、内容营销', description: '微信公众号策略、社区建设' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'Zhihu Strategist', example: '思想领导、知识驱动', description: '知乎权威建设、问答策略' },
+            { type: 'agent', category: '营销', subcategory: 'SEO', source: 'agency-agents', command: 'Baidu SEO Specialist', example: '百度优化、中国SEO', description: '在中国搜索市场排名' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'Bilibili Content Strategist', example: 'B站算法、UP主增长', description: 'B站社区优先内容建设' },
+            { type: 'agent', category: '营销', subcategory: '内容生成', source: 'agency-agents', command: 'Carousel Growth Engine', example: 'TikTok/Instagram轮播', description: '生成发布病毒式轮播内容' },
+            { type: 'agent', category: '营销', subcategory: '社交媒体', source: 'agency-agents', command: 'LinkedIn Content Creator', example: '个人品牌、思想领导', description: 'LinkedIn增长、专业受众' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'China E-Commerce Operator', example: '淘宝、天猫、拼多多', description: '中国多平台电商运营' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'Kuaishou Strategist', example: '快手、老铁社区', description: '低线城市真实受众建设' },
+            { type: 'agent', category: '营销', subcategory: 'SEO', source: 'agency-agents', command: 'SEO Specialist', example: '技术SEO、内容策略', description: '可持续自然搜索增长' },
+            { type: 'agent', category: '营销', subcategory: '出版', source: 'agency-agents', command: 'Book Co-Author', example: '思想领导书籍、代笔', description: '创始人和专家的战略书籍合作' },
+            { type: 'agent', category: '营销', subcategory: '电商', source: 'agency-agents', command: 'Cross-Border E-Commerce Specialist', example: 'Amazon、Shopee、Lazada', description: '全漏斗跨境电商策略' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'Douyin Strategist', example: '抖音平台、短视频营销', description: '中国领先短视频平台增长' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'Livestream Commerce Coach', example: '主播培训、直播间优化', description: '高绩效直播电商运营' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'Podcast Strategist', example: '播客内容策略、平台优化', description: '中国播客市场策略' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'Private Domain Operator', example: '企业微信、私域流量', description: '企业微信私域生态建设' },
+            { type: 'agent', category: '营销', subcategory: '视频', source: 'agency-agents', command: 'Short-Video Editing Coach', example: '后期制作、剪辑工作流', description: '短视频剪辑培训和优化' },
+            { type: 'agent', category: '营销', subcategory: '中国平台', source: 'agency-agents', command: 'Weibo Strategist', example: '新浪微博、热门话题', description: '微博运营和增长' },
+            { type: 'agent', category: '营销', subcategory: 'AI可见性', source: 'agency-agents', command: 'AI Citation Strategist', example: 'AEO/GEO、AI推荐可见性', description: 'ChatGPT、Claude等AI引用优化' },
+            { type: 'agent', category: '营销', subcategory: '本地化', source: 'agency-agents', command: 'China Market Localization Strategist', example: '全栈中国市场本地化', description: '抖音/小红书/微信GTM策略' },
+            { type: 'agent', category: '营销', subcategory: '视频', source: 'agency-agents', command: 'Video Optimization Specialist', example: 'YouTube算法、章节划分', description: 'YouTube频道增长、视频SEO' },
+            // Product Division
+            { type: 'agent', category: '产品', subcategory: '敏捷', source: 'agency-agents', command: 'Sprint Prioritizer', example: '冲刺规划、功能优先级', description: '冲刺规划、资源分配' },
+            { type: 'agent', category: '产品', subcategory: '研究', source: 'agency-agents', command: 'Trend Researcher', example: '市场情报、竞品分析', description: '市场研究、机会评估' },
+            { type: 'agent', category: '产品', subcategory: '反馈', source: 'agency-agents', command: 'Feedback Synthesizer', example: '用户反馈分析', description: '反馈分析、用户洞察' },
+            { type: 'agent', category: '产品', subcategory: '行为设计', source: 'agency-agents', command: 'Behavioral Nudge Engine', example: '行为心理学、Nudge设计', description: '行为科学驱动用户动机' },
+            { type: 'agent', category: '产品', subcategory: '全生命周期', source: 'agency-agents', command: 'Product Manager', example: '全生命周期产品所有权', description: '发现、PRD、路线图、GTM' },
+            // Project Management Division
+            { type: 'agent', category: '项目管理', subcategory: '高层编排', source: 'agency-agents', command: 'Studio Producer', example: '多项目监督、战略对齐', description: '多项目组合管理' },
+            { type: 'agent', category: '项目管理', subcategory: '协调', source: 'agency-agents', command: 'Project Shepherd', example: '跨职能协调、时间线', description: '端到端项目协调' },
+            { type: 'agent', category: '项目管理', subcategory: '运营', source: 'agency-agents', command: 'Studio Operations', example: '日常效率、流程优化', description: '运营卓越、团队支持' },
+            { type: 'agent', category: '项目管理', subcategory: '实验', source: 'agency-agents', command: 'Experiment Tracker', example: 'A/B测试、假设验证', description: '实验管理、数据驱动决策' },
+            { type: 'agent', category: '项目管理', subcategory: '范围', source: 'agency-agents', command: 'Senior Project Manager', example: '现实范围、任务转换', description: '规格转任务、范围管理' },
+            { type: 'agent', category: '项目管理', subcategory: 'Jira', source: 'agency-agents', command: 'Jira Workflow Steward', example: 'Git工作流、分支策略', description: 'Jira关联Git纪律执行' },
+            // Testing Division
+            { type: 'agent', category: '测试', subcategory: '视觉', source: 'agency-agents', command: 'Evidence Collector', example: '截图QA、视觉证明', description: 'UI测试、视觉验证' },
+            { type: 'agent', category: '测试', subcategory: '质量门', source: 'agency-agents', command: 'Reality Checker', example: '基于证据的认证', description: '生产就绪、质量批准' },
+            { type: 'agent', category: '测试', subcategory: '分析', source: 'agency-agents', command: 'Test Results Analyzer', example: '测试评估、指标分析', description: '测试输出分析、质量洞察' },
+            { type: 'agent', category: '测试', subcategory: '性能', source: 'agency-agents', command: 'Performance Benchmarker', example: '性能测试、优化', description: '速度测试、负载测试' },
+            { type: 'agent', category: '测试', subcategory: 'API', source: 'agency-agents', command: 'API Tester', example: 'API验证、集成测试', description: 'API测试、端点验证' },
+            { type: 'agent', category: '测试', subcategory: '工具评估', source: 'agency-agents', command: 'Tool Evaluator', example: '技术评估、工具选择', description: '评估工具、软件推荐' },
+            { type: 'agent', category: '测试', subcategory: '流程', source: 'agency-agents', command: 'Workflow Optimizer', example: '流程分析、工作流改进', description: '流程优化、效率提升' },
+            { type: 'agent', category: '测试', subcategory: '无障碍', source: 'agency-agents', command: 'Accessibility Auditor', example: 'WCAG审计、屏幕阅读器', description: '无障碍合规、包容设计验证' },
+            // Support Division
+            { type: 'agent', category: '支持', subcategory: '客户服务', source: 'agency-agents', command: 'Support Responder', example: '客户服务、问题解决', description: '客户支持、用户体验' },
+            { type: 'agent', category: '支持', subcategory: '分析', source: 'agency-agents', command: 'Analytics Reporter', example: '数据分析、仪表板', description: '商业智能、KPI追踪' },
+            { type: 'agent', category: '支持', subcategory: '财务', source: 'agency-agents', command: 'Finance Tracker', example: '财务规划、预算管理', description: '财务分析、现金流' },
+            { type: 'agent', category: '支持', subcategory: '基础设施', source: 'agency-agents', command: 'Infrastructure Maintainer', example: '系统可靠性、性能优化', description: '基础设施管理、监控' },
+            { type: 'agent', category: '支持', subcategory: '合规', source: 'agency-agents', command: 'Legal Compliance Checker', example: '合规、法规审查', description: '法律合规、监管要求' },
+            { type: 'agent', category: '支持', subcategory: '高管沟通', source: 'agency-agents', command: 'Executive Summary Generator', example: 'C-suite沟通、战略摘要', description: '高管报告、战略沟通' },
+            // Spatial Computing Division
+            { type: 'agent', category: '空间计算', subcategory: 'XR设计', source: 'agency-agents', command: 'XR Interface Architect', example: '空间交互设计、沉浸式UX', description: 'AR/VR/XR界面设计' },
+            { type: 'agent', category: '空间计算', subcategory: 'macOS', source: 'agency-agents', command: 'macOS Spatial/Metal Engineer', example: 'Swift、Metal、高性能3D', description: 'macOS空间计算、Vision Pro原生应用' },
+            { type: 'agent', category: '空间计算', subcategory: 'WebXR', source: 'agency-agents', command: 'XR Immersive Developer', example: 'WebXR、浏览器AR/VR', description: '浏览器沉浸式体验' },
+            { type: 'agent', category: '空间计算', subcategory: '驾驶舱', source: 'agency-agents', command: 'XR Cockpit Interaction Specialist', example: '驾驶舱控制、沉浸式系统', description: '驾驶舱控制系统' },
+            { type: 'agent', category: '空间计算', subcategory: 'visionOS', source: 'agency-agents', command: 'visionOS Spatial Engineer', example: 'Apple Vision Pro开发', description: 'Vision Pro应用、空间计算' },
+            { type: 'agent', category: '空间计算', subcategory: '终端', source: 'agency-agents', command: 'Terminal Integration Specialist', example: '终端集成、命令行工具', description: 'CLI工具、终端工作流' },
+            // Specialized Division
+            { type: 'agent', category: '专业化', subcategory: '多代理', source: 'agency-agents', command: 'Agents Orchestrator', example: '多代理协调、工作流管理', description: '需要多代理协调的复杂项目' },
+            { type: 'agent', category: '专业化', subcategory: '代码智能', source: 'agency-agents', command: 'LSP/Index Engineer', example: '语言服务器协议、代码智能', description: '代码智能系统、LSP实现' },
+            { type: 'agent', category: '专业化', subcategory: '数据提取', source: 'agency-agents', command: 'Sales Data Extraction Agent', example: 'Excel监控、销售指标提取', description: '销售数据摄取、MTD/YTD指标' },
+            { type: 'agent', category: '专业化', subcategory: '数据聚合', source: 'agency-agents', command: 'Data Consolidation Agent', example: '销售数据聚合、仪表板', description: '区域摘要、代表绩效' },
+            { type: 'agent', category: '专业化', subcategory: '报告分发', source: 'agency-agents', command: 'Report Distribution Agent', example: '自动报告交付', description: '基于区域的报告分发' },
+            { type: 'agent', category: '专业化', subcategory: '身份信任', source: 'agency-agents', command: 'Agentic Identity & Trust Architect', example: '代理身份、认证', description: '多代理身份系统' },
+            { type: 'agent', category: '专业化', subcategory: '身份图谱', source: 'agency-agents', command: 'Identity Graph Operator', example: '共享身份解析', description: '实体去重、跨代理身份一致性' },
+            { type: 'agent', category: '专业化', subcategory: '支付', source: 'agency-agents', command: 'Accounts Payable Agent', example: '支付处理、供应商管理', description: '加密、法币、稳定币自主支付' },
+            { type: 'agent', category: '专业化', subcategory: '区块链安全', source: 'agency-agents', command: 'Blockchain Security Auditor', example: '智能合约审计、漏洞分析', description: '合约漏洞发现' },
+            { type: 'agent', category: '专业化', subcategory: '合规审计', source: 'agency-agents', command: 'Compliance Auditor', example: 'SOC 2、ISO 27001、HIPAA', description: '合规认证指导' },
+            { type: 'agent', category: '专业化', subcategory: '文化智能', source: 'agency-agents', command: 'Cultural Intelligence Strategist', example: '全球UX、文化排斥', description: '确保软件跨文化共鸣' },
+            { type: 'agent', category: '专业化', subcategory: '开发者关系', source: 'agency-agents', command: 'Developer Advocate', example: '社区建设、DX、开发者内容', description: '连接产品和开发者社区' },
+            { type: 'agent', category: '专业化', subcategory: 'ML审计', source: 'agency-agents', command: 'Model QA Specialist', example: 'ML审计、特征分析', description: '端到端ML模型QA' },
+            { type: 'agent', category: '专业化', subcategory: '知识管理', source: 'agency-agents', command: 'ZK Steward', example: '知识管理、Zettelkasten', description: '构建连接的知识库' },
+            { type: 'agent', category: '专业化', subcategory: 'MCP', source: 'agency-agents', command: 'MCP Builder', example: '模型上下文协议服务器', description: '构建扩展AI代理能力的MCP服务器' },
+            { type: 'agent', category: '专业化', subcategory: '文档生成', source: 'agency-agents', command: 'Document Generator', example: 'PDF、PPTX、DOCX生成', description: '专业文档创建' },
+            { type: 'agent', category: '专业化', subcategory: '自动化治理', source: 'agency-agents', command: 'Automation Governance Architect', example: '自动化治理、n8n', description: '大规模业务自动化评估' },
+            { type: 'agent', category: '专业化', subcategory: '企业培训', source: 'agency-agents', command: 'Corporate Training Designer', example: '企业培训、课程开发', description: '培训系统设计' },
+            { type: 'agent', category: '专业化', subcategory: '政府数字', source: 'agency-agents', command: 'Government Digital Presales Consultant', example: '中国ToG售前', description: '政府数字化转型提案' },
+            { type: 'agent', category: '专业化', subcategory: '医疗合规', source: 'agency-agents', command: 'Healthcare Marketing Compliance', example: '中国医疗广告合规', description: '医疗营销监管合规' },
+            { type: 'agent', category: '专业化', subcategory: '招聘', source: 'agency-agents', command: 'Recruitment Specialist', example: '人才获取、招聘运营', description: '招聘策略、寻访、招聘流程' },
+            { type: 'agent', category: '专业化', subcategory: '留学', source: 'agency-agents', command: 'Study Abroad Advisor', example: '国际教育、申请规划', description: '美英加澳留学规划' },
+            { type: 'agent', category: '专业化', subcategory: '供应链', source: 'agency-agents', command: 'Supply Chain Strategist', example: '供应链管理、采购策略', description: '供应链优化' },
+            { type: 'agent', category: '专业化', subcategory: '工作流', source: 'agency-agents', command: 'Workflow Architect', example: '工作流发现、映射', description: '编码前映射系统路径' },
+            { type: 'agent', category: '专业化', subcategory: 'Salesforce', source: 'agency-agents', command: 'Salesforce Architect', example: '多云Salesforce设计', description: '企业Salesforce架构' },
+            { type: 'agent', category: '专业化', subcategory: '法国市场', source: 'agency-agents', command: 'French Consulting Market Navigator', example: 'ESN/SI生态', description: '法国IT市场自由职业咨询' },
+            { type: 'agent', category: '专业化', subcategory: '韩国市场', source: 'agency-agents', command: 'Korean Business Navigator', example: '韩国商业文化', description: '韩国商业关系导航' },
+            { type: 'agent', category: '专业化', subcategory: '土木工程', source: 'agency-agents', command: 'Civil Engineer', example: '结构分析、岩土设计', description: '多标准结构工程' },
+            { type: 'agent', category: '专业化', subcategory: '客户服务', source: 'agency-agents', command: 'Customer Service', example: '全渠道支持', description: '任何行业客户支持' },
+            { type: 'agent', category: '专业化', subcategory: '医疗客服', source: 'agency-agents', command: 'Healthcare Customer Service', example: 'HIPAA感知患者支持', description: '医疗组织合规患者支持' },
+            { type: 'agent', category: '专业化', subcategory: '酒店服务', source: 'agency-agents', command: 'Hospitality Guest Services', example: '预订、礼宾、投诉恢复', description: '酒店、餐厅、活动场所' },
+            { type: 'agent', category: '专业化', subcategory: 'HR入职', source: 'agency-agents', command: 'HR Onboarding', example: '预入职、合规、福利', description: '新员工入职' },
+            { type: 'agent', category: '专业化', subcategory: '翻译', source: 'agency-agents', command: 'Language Translator', example: '西班牙语↔英语翻译', description: '旅行、商务、医疗翻译' },
+            { type: 'agent', category: '专业化', subcategory: '法律服务', source: 'agency-agents', command: 'Legal Billing & Time Tracking', example: '时间捕获、账单叙述', description: '律所收入回收和账单准确性' },
+            { type: 'agent', category: '专业化', subcategory: '法律服务', source: 'agency-agents', command: 'Legal Client Intake', example: '潜在客户资格、冲突筛查', description: '将咨询转化为委托客户' },
+            { type: 'agent', category: '专业化', subcategory: '法律服务', source: 'agency-agents', command: 'Legal Document Review', example: '合同审查、风险标记', description: '任何业务领域的首次审查' },
+            { type: 'agent', category: '专业化', subcategory: '金融服务', source: 'agency-agents', command: 'Loan Officer Assistant', example: '借款人入职、TRID合规', description: '抵押和消费贷款团队' },
+            { type: 'agent', category: '专业化', subcategory: '房地产', source: 'agency-agents', command: 'Real Estate Buyer & Seller', example: '买方/卖方代表', description: '住宅和投资房地产交易' },
+            { type: 'agent', category: '专业化', subcategory: '零售', source: 'agency-agents', command: 'Retail Customer Returns', example: '退货处理、防欺诈', description: '实体店、电商、全渠道零售' },
+            // Finance Division
+            { type: 'agent', category: '财务', subcategory: '会计', source: 'agency-agents', command: 'Bookkeeper & Controller', example: '月结、对账、GAAP合规', description: '日常会计、审计准备' },
+            { type: 'agent', category: '财务', subcategory: '分析', source: 'agency-agents', command: 'Financial Analyst', example: '财务建模、预测', description: '三表模型、差异分析' },
+            { type: 'agent', category: '财务', subcategory: 'FP&A', source: 'agency-agents', command: 'FP&A Analyst', example: '预算、滚动预测', description: '年度运营计划、月度业务审查' },
+            { type: 'agent', category: '财务', subcategory: '投资', source: 'agency-agents', command: 'Investment Researcher', example: '尽职调查、组合分析', description: '投资论文开发、风险评估' },
+            { type: 'agent', category: '财务', subcategory: '税务', source: 'agency-agents', command: 'Tax Strategist', example: '税务优化、多司法管辖区', description: '实体结构、ETR分析' },
+            // Game Development Division
+            { type: 'agent', category: '游戏开发', subcategory: '设计', source: 'agency-agents', command: 'Game Designer', example: '系统设计、GDD、经济平衡', description: '游戏机制、进度系统' },
+            { type: 'agent', category: '游戏开发', subcategory: '设计', source: 'agency-agents', command: 'Level Designer', example: '布局理论、节奏、遭遇设计', description: '构建关卡、设计遭遇流程' },
+            { type: 'agent', category: '游戏开发', subcategory: '技术美术', source: 'agency-agents', command: 'Technical Artist', example: 'Shader、VFX、LOD管道', description: '美术与工程桥梁' },
+            { type: 'agent', category: '游戏开发', subcategory: '音频', source: 'agency-agents', command: 'Game Audio Engineer', example: 'FMOD/Wwise、自适应音乐', description: '交互音频系统、动态音乐' },
+            { type: 'agent', category: '游戏开发', subcategory: '叙事', source: 'agency-agents', command: 'Narrative Designer', example: '故事系统、分支对话', description: '编写分支叙事、对话系统' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Unity', source: 'agency-agents', command: 'Unity Architect', example: 'ScriptableObjects、DOTS/ECS', description: '大型Unity项目、ECS性能' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Unity', source: 'agency-agents', command: 'Unity Shader Graph Artist', example: 'Shader Graph、URP/HDRP', description: '自定义Unity材质、VFX Shader' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Unity', source: 'agency-agents', command: 'Unity Multiplayer Engineer', example: 'Netcode、Unity Relay/Lobby', description: '在线Unity游戏、客户端预测' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Unity', source: 'agency-agents', command: 'Unity Editor Tool Developer', example: 'EditorWindows、AssetPostprocessor', description: '自定义Unity编辑器工具' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Unreal', source: 'agency-agents', command: 'Unreal Systems Engineer', example: 'C++/Blueprint、GAS', description: '复杂Unreal游戏系统' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Unreal', source: 'agency-agents', command: 'Unreal Technical Artist', example: 'Material Editor、Niagara、PCG', description: 'Unreal材质、Niagara VFX' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Unreal', source: 'agency-agents', command: 'Unreal Multiplayer Architect', example: 'Actor复制、专用服务器', description: 'Unreal在线游戏' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Unreal', source: 'agency-agents', command: 'Unreal World Builder', example: 'World Partition、Landscape', description: '大型开放世界Unreal关卡' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Godot', source: 'agency-agents', command: 'Godot Gameplay Scripter', example: 'GDScript 2.0、Signals', description: 'Godot游戏系统' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Godot', source: 'agency-agents', command: 'Godot Multiplayer Engineer', example: 'MultiplayerAPI、RPCs', description: '在线Godot游戏' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Godot', source: 'agency-agents', command: 'Godot Shader Developer', example: 'Godot Shader语言', description: '自定义Godot材质、效果' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Blender', source: 'agency-agents', command: 'Blender Addon Engineer', example: 'Blender Python、自定义操作器', description: '构建Blender插件' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Roblox', source: 'agency-agents', command: 'Roblox Systems Scripter', example: 'Luau、RemoteEvents', description: '安全Roblox游戏系统' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Roblox', source: 'agency-agents', command: 'Roblox Experience Designer', example: '参与循环、变现', description: 'Roblox游戏循环设计' },
+            { type: 'agent', category: '游戏开发', subcategory: 'Roblox', source: 'agency-agents', command: 'Roblox Avatar Creator', example: 'UGC管道、配件绑定', description: 'Roblox UGC物品' },
+            // Academic Division
+            { type: 'agent', category: '学术', subcategory: '人类学', source: 'agency-agents', command: 'Anthropologist', example: '文化系统、仪式、信仰', description: '设计文化连贯的社会' },
+            { type: 'agent', category: '学术', subcategory: '地理', source: 'agency-agents', command: 'Geographer', example: '物理/人文地理、气候', description: '构建地理连贯的世界' },
+            { type: 'agent', category: '学术', subcategory: '历史', source: 'agency-agents', command: 'Historian', example: '历史分析、物质文化', description: '验证历史连贯性' },
+            { type: 'agent', category: '学术', subcategory: '叙事学', source: 'agency-agents', command: 'Narratologist', example: '叙事理论、故事结构', description: '分析和改进故事结构' },
+            { type: 'agent', category: '学术', subcategory: '心理学', source: 'agency-agents', command: 'Psychologist', example: '人格理论、动机', description: '构建心理可信的角色' },
+
+            // ============ oh-my-claudecode ============
+            { type: 'skill', category: '软件开发', subcategory: '自主执行', source: 'oh-my-claudecode', command: '/autopilot', example: 'autopilot: 构建一个REST API', description: '从想法到工作代码的完全自主执行' },
+            { type: 'skill', category: '软件开发', subcategory: '持久模式', source: 'oh-my-claudecode', command: '/ralph', example: 'ralph "重构认证模块"', description: '持久模式，带验证/修复循环' },
+            { type: 'skill', category: '软件开发', subcategory: '并行执行', source: 'oh-my-claudecode', command: '/ultrawork', example: 'ulw "修复所有错误"', description: '最大并行度执行' },
+            { type: 'skill', category: '软件开发', subcategory: '迭代规划', source: 'oh-my-claudecode', command: '/ralplan', example: 'ralplan "规划这个功能"', description: '迭代式规划共识' },
+            { type: 'skill', category: '需求分析', subcategory: '苏格拉底式', source: 'oh-my-claudecode', command: '/deep-interview', example: '/deep-interview "模糊想法"', description: '苏格拉底式需求澄清' },
+            { type: 'skill', category: '团队协作', subcategory: '多代理', source: 'oh-my-claudecode', command: '/team', example: '/team 3:executor "..."', description: '规范的团队编排' },
+            { type: 'skill', category: '代码审核', subcategory: '多模型', source: 'oh-my-claudecode', command: '/ccg', example: '/ccg review this PR', description: '三模型综合（Codex + Gemini）' },
+            { type: 'skill', category: '工具集成', subcategory: '提供商', source: 'oh-my-claudecode', command: '/ask', example: '/ask codex "review migration"', description: '提供商顾问' },
+            { type: 'skill', category: '技能管理', subcategory: '自定义', source: 'oh-my-claudecode', command: '/skill', example: '/skill list | add | remove', description: '管理自定义技能' },
+            { type: 'skill', category: '学习', subcategory: '模式提取', source: 'oh-my-claudecode', command: '/learner', example: '/learner', description: '提取可重用模式' },
+            { type: 'skill', category: '诊断', subcategory: '插件', source: 'oh-my-claudecode', command: '/omc-doctor', example: '/omc-doctor', description: '清除插件缓存' },
+            { type: 'skill', category: '配置', subcategory: '初始化', source: 'oh-my-claudecode', command: '/setup', example: '/setup', description: '设置入口点' },
+            { type: 'command', category: 'CLI', subcategory: '配置', source: 'oh-my-claudecode', command: 'omc setup', example: 'omc setup', description: '初始化配置' },
+            { type: 'command', category: 'CLI', subcategory: '提供商', source: 'oh-my-claudecode', command: 'omc ask', example: 'omc ask codex "review this patch"', description: '运行本地提供商CLI，保存产物' },
+            { type: 'command', category: 'CLI', subcategory: '团队', source: 'oh-my-claudecode', command: 'omc team', example: 'omc team 2:codex "review auth"', description: '生成tmux CLI工作者' },
+            { type: 'command', category: 'CLI', subcategory: '团队', source: 'oh-my-claudecode', command: 'omc team status', example: 'omc team status auth-review', description: '检查团队状态' },
+            { type: 'command', category: 'CLI', subcategory: '团队', source: 'oh-my-claudecode', command: 'omc team shutdown', example: 'omc team shutdown auth-review', description: '停止工作者' },
+            { type: 'command', category: 'CLI', subcategory: '速率限制', source: 'oh-my-claudecode', command: 'omc wait', example: 'omc wait --start', description: '速率限制自动恢复' },
+            { type: 'command', category: 'CLI', subcategory: '可视化', source: 'oh-my-claudecode', command: 'omc hud', example: 'omc hud', description: '实时HUD渲染' },
+            { type: 'command', category: 'CLI', subcategory: '通知', source: 'oh-my-claudecode', command: 'omc config-stop-callback', example: 'omc config-stop-callback telegram --enable', description: '配置通知' },
+
+            // ============ everything-claude-code ============
+            { type: 'agent', category: '软件开发', subcategory: '规划', source: 'everything-claude-code', command: 'planner', example: '功能实现规划', description: '功能实现规划' },
+            { type: 'agent', category: '软件开发', subcategory: '架构', source: 'everything-claude-code', command: 'architect', example: '系统设计决策', description: '系统设计决策' },
+            { type: 'agent', category: '软件开发', subcategory: 'TDD', source: 'everything-claude-code', command: 'tdd-guide', example: '测试驱动开发', description: '测试驱动开发' },
+            { type: 'agent', category: '代码审核', subcategory: '质量', source: 'everything-claude-code', command: 'code-reviewer', example: '质量和安全审查', description: '质量和安全审查' },
+            { type: 'agent', category: '安全', subcategory: '漏洞', source: 'everything-claude-code', command: 'security-reviewer', example: '漏洞分析', description: '漏洞分析' },
+            { type: 'agent', category: '开发工具', subcategory: '构建', source: 'everything-claude-code', command: 'build-error-resolver', example: '构建错误解决', description: '构建错误解决' },
+            { type: 'agent', category: '测试', subcategory: 'E2E', source: 'everything-claude-code', command: 'e2e-runner', example: 'Playwright E2E测试', description: 'Playwright E2E测试' },
+            { type: 'agent', category: '代码重构', subcategory: '清理', source: 'everything-claude-code', command: 'refactor-cleaner', example: '死代码清理', description: '死代码清理' },
+            { type: 'agent', category: '文档', subcategory: '更新', source: 'everything-claude-code', command: 'doc-updater', example: '文档同步', description: '文档同步' },
+            { type: 'agent', category: '文档', subcategory: '查询', source: 'everything-claude-code', command: 'docs-lookup', example: '文档/API查询', description: '文档/API查询' },
+            { type: 'agent', category: '专业化', subcategory: '沟通', source: 'everything-claude-code', command: 'chief-of-staff', example: '沟通分流和草稿', description: '沟通分流和草稿' },
+            { type: 'agent', category: '专业化', subcategory: '循环', source: 'everything-claude-code', command: 'loop-operator', example: '自主循环执行', description: '自主循环执行' },
+            // Commands from everything-claude-code
+            { type: 'command', category: '软件开发', subcategory: 'TDD', source: 'everything-claude-code', command: '/tdd', example: '/tdd', description: '测试驱动开发' },
+            { type: 'command', category: '软件开发', subcategory: '规划', source: 'everything-claude-code', command: '/plan', example: '/plan', description: '实现规划' },
+            { type: 'command', category: '测试', subcategory: 'E2E', source: 'everything-claude-code', command: '/e2e', example: '/e2e', description: 'E2E测试生成' },
+            { type: 'command', category: '代码审核', subcategory: '质量', source: 'everything-claude-code', command: '/code-review', example: '/code-review', description: '质量审查' },
+            { type: 'command', category: '开发工具', subcategory: '构建', source: 'everything-claude-code', command: '/build-fix', example: '/build-fix', description: '修复构建错误' },
+            { type: 'command', category: '代码重构', subcategory: '清理', source: 'everything-claude-code', command: '/refactor-clean', example: '/refactor-clean', description: '死代码移除' },
+            { type: 'command', category: '学习', subcategory: '模式提取', source: 'everything-claude-code', command: '/learn', example: '/learn', description: '会话中提取模式' },
+            { type: 'command', category: '学习', subcategory: '模式评估', source: 'everything-claude-code', command: '/learn-eval', example: '/learn-eval', description: '提取、评估、保存模式' },
+            { type: 'command', category: '验证', subcategory: '状态保存', source: 'everything-claude-code', command: '/checkpoint', example: '/checkpoint', description: '保存验证状态' },
+            { type: 'command', category: '验证', subcategory: '循环', source: 'everything-claude-code', command: '/verify', example: '/verify', description: '运行验证循环' },
+            { type: 'command', category: '配置', subcategory: '包管理器', source: 'everything-claude-code', command: '/setup-pm', example: '/setup-pm', description: '配置包管理器' },
+            { type: 'command', category: '团队协作', subcategory: '多代理', source: 'everything-claude-code', command: '/multi-plan', example: '/multi-plan', description: '多代理任务分解' },
+            { type: 'command', category: '团队协作', subcategory: '多代理', source: 'everything-claude-code', command: '/multi-execute', example: '/multi-execute', description: '编排多代理工作流' },
+            { type: 'command', category: '团队协作', subcategory: '后端', source: 'everything-claude-code', command: '/multi-backend', example: '/multi-backend', description: '后端多服务编排' },
+            { type: 'command', category: '团队协作', subcategory: '前端', source: 'everything-claude-code', command: '/multi-frontend', example: '/multi-frontend', description: '前端多服务编排' },
+            { type: 'command', category: '团队协作', subcategory: '工作流', source: 'everything-claude-code', command: '/multi-workflow', example: '/multi-workflow', description: '通用多服务工作流' },
+            { type: 'command', category: '团队协作', subcategory: '协调', source: 'everything-claude-code', command: '/orchestrate', example: '/orchestrate', description: '多代理协调' },
+            { type: 'command', category: '会话', subcategory: '历史', source: 'everything-claude-code', command: '/sessions', example: '/sessions', description: '会话历史管理' },
+            { type: 'command', category: '验证', subcategory: '评估', source: 'everything-claude-code', command: '/eval', example: '/eval', description: '按标准评估' },
+            { type: 'command', category: '测试', subcategory: '覆盖率', source: 'everything-claude-code', command: '/test-coverage', example: '/test-coverage', description: '测试覆盖率分析' },
+            { type: 'command', category: '文档', subcategory: '更新', source: 'everything-claude-code', command: '/update-docs', example: '/update-docs', description: '更新文档' },
+            { type: 'command', category: '安全', subcategory: '扫描', source: 'everything-claude-code', command: '/security-scan', example: '/security-scan', description: 'AgentShield安全审计' },
+            { type: 'command', category: '验证', subcategory: '质量门', source: 'everything-claude-code', command: '/quality-gate', example: '/quality-gate', description: '运行质量门检查' },
+            { type: 'command', category: '配置', subcategory: '模型路由', source: 'everything-claude-code', command: '/model-route', example: '/model-route', description: '路由任务到模型' },
+            { type: 'command', category: '学习', subcategory: '提升', source: 'everything-claude-code', command: '/promote', example: '/promote', description: '将项目本能提升到全局' },
+
+            // ============ OpenSpec ============
+            { type: 'command', category: '变更管理', subcategory: '提案', source: 'OpenSpec', command: '/opsx:propose', example: '/opsx:propose add-dark-mode', description: '创建变更提案，含规格、设计、任务' },
+            { type: 'command', category: '变更管理', subcategory: '实施', source: 'OpenSpec', command: '/opsx:apply', example: '/opsx:apply', description: '实施提案中的任务' },
+            { type: 'command', category: '变更管理', subcategory: '归档', source: 'OpenSpec', command: '/opsx:archive', example: '/opsx:archive', description: '将完成的变更归档' },
+            { type: 'command', category: '变更管理', subcategory: '工作流', source: 'OpenSpec', command: '/opsx:new', example: '/opsx:new', description: '新建变更' },
+            { type: 'command', category: '变更管理', subcategory: '工作流', source: 'OpenSpec', command: '/opsx:continue', example: '/opsx:continue', description: '继续变更' },
+            { type: 'command', category: '变更管理', subcategory: '工作流', source: 'OpenSpec', command: '/opsx:ff', example: '/opsx:ff', description: '快速前进' },
+            { type: 'command', category: '变更管理', subcategory: '工作流', source: 'OpenSpec', command: '/opsx:verify', example: '/opsx:verify', description: '验证' },
+            { type: 'command', category: '变更管理', subcategory: '工作流', source: 'OpenSpec', command: '/opsx:sync', example: '/opsx:sync', description: '同步' },
+            { type: 'command', category: '变更管理', subcategory: '工作流', source: 'OpenSpec', command: '/opsx:bulk-archive', example: '/opsx:bulk-archive', description: '批量归档' },
+            { type: 'command', category: '变更管理', subcategory: '工作流', source: 'OpenSpec', command: '/opsx:onboard', example: '/opsx:onboard', description: '入职' },
+            { type: 'command', category: 'CLI', subcategory: '初始化', source: 'OpenSpec', command: 'openspec init', example: 'openspec init', description: '在项目中初始化' },
+            { type: 'command', category: 'CLI', subcategory: '配置', source: 'OpenSpec', command: 'openspec config profile', example: 'openspec config profile', description: '选择工作流配置' },
+            { type: 'command', category: 'CLI', subcategory: '更新', source: 'OpenSpec', command: 'openspec update', example: 'openspec update', description: '刷新代理指令' },
+
+            // ============ GSD ============
+            { type: 'command', category: '项目管理', subcategory: '初始化', source: 'get-shit-done', command: '/gsd-new-project', example: '/gsd-new-project --auto', description: '完整初始化：问题→研究→需求→路线图' },
+            { type: 'command', category: '项目管理', subcategory: '阶段', source: 'get-shit-done', command: '/gsd-discuss-phase', example: '/gsd-discuss-phase 1 --auto', description: '在规划前捕获实施决策' },
+            { type: 'command', category: '项目管理', subcategory: '阶段', source: 'get-shit-done', command: '/gsd-plan-phase', example: '/gsd-plan-phase 1 --auto', description: '研究+规划+验证' },
+            { type: 'command', category: '项目管理', subcategory: '阶段', source: 'get-shit-done', command: '/gsd-execute-phase', example: '/gsd-execute-phase 1', description: '并行波浪执行所有计划' },
+            { type: 'command', category: '项目管理', subcategory: '验证', source: 'get-shit-done', command: '/gsd-verify-work', example: '/gsd-verify-work 1', description: '手动用户验收测试' },
+            { type: 'command', category: '项目管理', subcategory: '发布', source: 'get-shit-done', command: '/gsd-ship', example: '/gsd-ship --draft', description: '从验证阶段创建PR' },
+            { type: 'command', category: '项目管理', subcategory: '自动化', source: 'get-shit-done', command: '/gsd-next', example: '/gsd-next', description: '自动检测并运行下一步' },
+            { type: 'command', category: '项目管理', subcategory: '快速', source: 'get-shit-done', command: '/gsd-fast', example: '/gsd-fast "修复登录bug"', description: '内联小任务，跳过规划' },
+            { type: 'command', category: '项目管理', subcategory: '里程碑', source: 'get-shit-done', command: '/gsd-complete-milestone', example: '/gsd-complete-milestone', description: '归档里程碑，标记发布' },
+            { type: 'command', category: '项目管理', subcategory: '里程碑', source: 'get-shit-done', command: '/gsd-new-milestone', example: '/gsd-new-milestone v2.0', description: '开始下一个版本' },
+            { type: 'command', category: '项目管理', subcategory: '调查', source: 'get-shit-done', command: '/gsd-forensics', example: '/gsd-forensics "失败原因"', description: '失败运行的事后调查' },
+            { type: 'command', category: '项目管理', subcategory: '摘要', source: 'get-shit-done', command: '/gsd-milestone-summary', example: '/gsd-milestone-summary v1.0', description: '生成入职项目摘要' },
+            { type: 'command', category: '项目管理', subcategory: '工作流', source: 'get-shit-done', command: '/gsd-workstreams list', example: '/gsd-workstreams list', description: '显示所有工作流和状态' },
+            { type: 'command', category: '项目管理', subcategory: '工作流', source: 'get-shit-done', command: '/gsd-workstreams create', example: '/gsd-workstreams create feature-a', description: '创建命名空间工作流' },
+            { type: 'command', category: '项目管理', subcategory: '工作流', source: 'get-shit-done', command: '/gsd-workstreams switch', example: '/gsd-workstreams switch feature-a', description: '切换活动工作流' },
+            { type: 'command', category: '项目管理', subcategory: '实验', source: 'get-shit-done', command: '/gsd-spike', example: '/gsd-spike "验证WebSocket" --quick', description: '丢弃式可行性验证实验' },
+            { type: 'command', category: '项目管理', subcategory: '原型', source: 'get-shit-done', command: '/gsd-sketch', example: '/gsd-sketch "登录页面" --quick', description: '丢弃式HTML原型' },
+            { type: 'command', category: '项目管理', subcategory: 'UI设计', source: 'get-shit-done', command: '/gsd-ui-phase', example: '/gsd-ui-phase 1', description: '生成UI设计合约' },
+            { type: 'command', category: '项目管理', subcategory: 'UI审核', source: 'get-shit-done', command: '/gsd-ui-review', example: '/gsd-ui-review 1', description: '追溯性6柱视觉审计' },
+            { type: 'command', category: '项目管理', subcategory: '导航', source: 'get-shit-done', command: '/gsd-progress', example: '/gsd-progress', description: '我在哪里？下一步是什么？' },
+            { type: 'command', category: '项目管理', subcategory: '帮助', source: 'get-shit-done', command: '/gsd-help', example: '/gsd-help', description: '显示所有命令和用法' },
+            { type: 'command', category: '代码审核', subcategory: '审查', source: 'get-shit-done', command: '/gsd-review', example: '/gsd-review', description: '跨AI同行审查' },
+            { type: 'command', category: '安全', subcategory: '执行', source: 'get-shit-done', command: '/gsd-secure-phase', example: '/gsd-secure-phase 1', description: '安全执行与威胁模型验证' },
+            { type: 'command', category: '代码审核', subcategory: 'PR', source: 'get-shit-done', command: '/gsd-pr-branch', example: '/gsd-pr-branch', description: '创建干净的PR分支' },
+            { type: 'command', category: '项目管理', subcategory: '会话', source: 'get-shit-done', command: '/gsd-pause-work', example: '/gsd-pause-work', description: '创建交接（写入HANDOFF.json）' },
+            { type: 'command', category: '项目管理', subcategory: '会话', source: 'get-shit-done', command: '/gsd-resume-work', example: '/gsd-resume-work', description: '从上次会话恢复' },
+            { type: 'command', category: '项目管理', subcategory: '会话', source: 'get-shit-done', command: '/gsd-session-report', example: '/gsd-session-report', description: '生成会话摘要' },
+            { type: 'command', category: '项目管理', subcategory: '调试', source: 'get-shit-done', command: '/gsd-debug', example: '/gsd-debug "登录失败"', description: '带持久状态的系统化调试' },
+            { type: 'command', category: '项目管理', subcategory: '快速', source: 'get-shit-done', command: '/gsd-quick', example: '/gsd-quick --full --validate', description: '带GSD保证的临时任务执行' },
+            { type: 'command', category: '项目管理', subcategory: '健康', source: 'get-shit-done', command: '/gsd-health', example: '/gsd-health --repair', description: '验证.planning/目录完整性' },
+            { type: 'command', category: '项目管理', subcategory: '统计', source: 'get-shit-done', command: '/gsd-stats', example: '/gsd-stats', description: '显示项目统计' },
+            { type: 'command', category: '项目管理', subcategory: '配置', source: 'get-shit-done', command: '/gsd-settings', example: '/gsd-settings', description: '配置模型配置文件和工作流代理' },
+            { type: 'command', category: '项目管理', subcategory: '配置', source: 'get-shit-done', command: '/gsd-set-profile', example: '/gsd-set-profile quality', description: '切换模型配置（quality/balanced/budget）' },
+            { type: 'agent', category: '项目管理', subcategory: '编排', source: 'get-shit-done', command: 'Orchestrator', example: '协调专业代理', description: '生成专业代理、收集结果、路由到下一步' },
+            { type: 'agent', category: '项目管理', subcategory: '研究', source: 'get-shit-done', command: 'Researcher', example: '4个并行代理调查', description: '并行调查堆栈、功能、架构、陷阱' },
+            { type: 'agent', category: '项目管理', subcategory: '规划', source: 'get-shit-done', command: 'Planner', example: '创建XML结构计划', description: '创建XML结构计划' },
+            { type: 'agent', category: '项目管理', subcategory: '检查', source: 'get-shit-done', command: 'Plan Checker', example: '验证计划', description: '验证计划达成阶段目标' },
+            { type: 'agent', category: '项目管理', subcategory: '执行', source: 'get-shit-done', command: 'Executor', example: '并行实现', description: '使用全新200k上下文并行实现' },
+            { type: 'agent', category: '项目管理', subcategory: '验证', source: 'get-shit-done', command: 'Verifier', example: '检查代码库', description: '对照目标检查代码库' },
+            { type: 'agent', category: '项目管理', subcategory: '调试', source: 'get-shit-done', command: 'Debugger', example: '诊断失败', description: '诊断失败' },
+            { type: 'agent', category: '项目管理', subcategory: '文档', source: 'get-shit-done', command: 'Doc-writer', example: '验证文档生成', description: '验证文档生成' },
+            { type: 'agent', category: '项目管理', subcategory: '文档', source: 'get-shit-done', command: 'Doc-verifier', example: '验证文档准确性', description: '验证文档准确性' },
+
+            // ============ GStack ============
+            { type: 'skill', category: '产品', subcategory: 'YC', source: 'gstack', command: '/office-hours', example: '/office-hours', description: 'YC办公时间：6个强制问题重构产品' },
+            { type: 'skill', category: '规划', subcategory: 'CEO审查', source: 'gstack', command: '/plan-ceo-review', example: '/plan-ceo-review', description: 'CEO/创始人：重新思考问题，找到10星产品' },
+            { type: 'skill', category: '规划', subcategory: '工程审查', source: 'gstack', command: '/plan-eng-review', example: '/plan-eng-review', description: '工程经理：锁定架构、数据流、边界情况' },
+            { type: 'skill', category: '规划', subcategory: '设计审查', source: 'gstack', command: '/plan-design-review', example: '/plan-design-review', description: '高级设计师：0-10评分，AI Slop检测' },
+            { type: 'skill', category: '规划', subcategory: 'DX审查', source: 'gstack', command: '/plan-devex-review', example: '/plan-devex-review', description: 'DX负责人：开发者体验审查，20-45个问题' },
+            { type: 'skill', category: '设计', subcategory: '咨询', source: 'gstack', command: '/design-consultation', example: '/design-consultation', description: '设计伙伴：从头构建完整设计系统' },
+            { type: 'skill', category: '设计', subcategory: '探索', source: 'gstack', command: '/design-shotgun', example: '/design-shotgun', description: '设计探索器：生成4-6个AI原型变体' },
+            { type: 'skill', category: '设计', subcategory: 'HTML', source: 'gstack', command: '/design-html', example: '/design-html', description: '设计工程师：将原型转为生产HTML' },
+            { type: 'skill', category: '代码审核', subcategory: '审查', source: 'gstack', command: '/review', example: '/review', description: 'Staff工程师：发现通过CI但在生产爆炸的bug' },
+            { type: 'skill', category: '调试', subcategory: '调查', source: 'gstack', command: '/investigate', example: '/investigate', description: '调试器：系统化根因调试，铁律：无调查不修复' },
+            { type: 'skill', category: '设计', subcategory: '审查修复', source: 'gstack', command: '/design-review', example: '/design-review', description: '设计师：与/plan-design-review相同审查，然后修复' },
+            { type: 'skill', category: 'DX', subcategory: '审查', source: 'gstack', command: '/devex-review', example: '/devex-review', description: 'DX测试器：实时开发者体验审计' },
+            { type: 'skill', category: '测试', subcategory: 'QA', source: 'gstack', command: '/qa', example: '/qa https://staging.myapp.com', description: 'QA负责人：测试应用、找bug、原子提交修复' },
+            { type: 'skill', category: '测试', subcategory: 'QA', source: 'gstack', command: '/qa-only', example: '/qa-only', description: 'QA报告器：同/qa方法但仅报告' },
+            { type: 'skill', category: '团队协作', subcategory: '多代理', source: 'gstack', command: '/pair-agent', example: '/pair-agent', description: '多代理协调器：与任何AI代理共享浏览器' },
+            { type: 'skill', category: '安全', subcategory: 'CSO', source: 'gstack', command: '/cso', example: '/cso', description: '首席安全官：OWASP Top 10 + STRIDE威胁模型' },
+            { type: 'skill', category: '发布', subcategory: '发布', source: 'gstack', command: '/ship', example: '/ship', description: '发布工程师：同步main、运行测试、推送、开PR' },
+            { type: 'skill', category: '发布', subcategory: '部署', source: 'gstack', command: '/land-and-deploy', example: '/land-and-deploy', description: '发布工程师：合并PR、等待CI和部署、验证生产健康' },
+            { type: 'skill', category: '运维', subcategory: '金丝雀', source: 'gstack', command: '/canary', example: '/canary', description: 'SRE：部署后监控循环' },
+            { type: 'skill', category: '性能', subcategory: '基准', source: 'gstack', command: '/benchmark', example: '/benchmark', description: '性能工程师：基准页面加载时间、Core Web Vitals' },
+            { type: 'skill', category: '文档', subcategory: '发布', source: 'gstack', command: '/document-release', example: '/document-release', description: '技术写作：更新项目文档匹配发布内容' },
+            { type: 'skill', category: '项目管理', subcategory: '回顾', source: 'gstack', command: '/retro', example: '/retro', description: '工程经理：团队周回顾，每人分解' },
+            { type: 'skill', category: '测试', subcategory: '浏览器', source: 'gstack', command: '/browse', example: '/browse', description: 'QA工程师：真实Chromium浏览器、真实点击、截图' },
+            { type: 'skill', category: '代码审核', subcategory: 'Codex', source: 'gstack', command: '/codex', example: '/codex', description: '第二意见：OpenAI Codex CLI独立代码审查' },
+            { type: 'skill', category: '安全', subcategory: '防护', source: 'gstack', command: '/careful', example: '/careful', description: '安全护栏：破坏性命令前警告' },
+            { type: 'skill', category: '安全', subcategory: '锁定', source: 'gstack', command: '/freeze', example: '/freeze', description: '编辑锁：限制文件编辑到一个目录' },
+            { type: 'skill', category: '安全', subcategory: '全面', source: 'gstack', command: '/guard', example: '/guard', description: '全面安全：/careful + /freeze' },
+            { type: 'skill', category: '安全', subcategory: '解锁', source: 'gstack', command: '/unfreeze', example: '/unfreeze', description: '解锁：移除/freeze边界' },
+            { type: 'skill', category: '工具', subcategory: '浏览器', source: 'gstack', command: '/open-gstack-browser', example: '/open-gstack-browser', description: '启动GStack浏览器，侧边栏，反机器人' },
+            { type: 'skill', category: '配置', subcategory: '部署', source: 'gstack', command: '/setup-deploy', example: '/setup-deploy', description: '部署配置器：/land-and-deploy一次性设置' },
+            { type: 'skill', category: '配置', subcategory: 'GBrain', source: 'gstack', command: '/setup-gbrain', example: '/setup-gbrain', description: 'GBrain入职：5分钟从零到运行gbrain' },
+            { type: 'skill', category: '配置', subcategory: '更新', source: 'gstack', command: '/gstack-upgrade', example: '/gstack-upgrade', description: '自更新器：升级gstack到最新' },
+            { type: 'skill', category: '规划', subcategory: '自动', source: 'gstack', command: '/autoplan', example: '/autoplan', description: '审查管道：一个命令，完全审查的计划' },
+            { type: 'skill', category: '学习', subcategory: '记忆', source: 'gstack', command: '/learn', example: '/learn', description: '记忆：管理gstack跨会话学习的内容' },
+
+            // ============ Compound Engineering ============
+            { type: 'skill', category: '构思', subcategory: '想法', source: 'compound-engineering', command: '/ce-ideate', example: '/ce-ideate', description: '可选大局构思：生成和批判性评估基于现实的想法' },
+            { type: 'skill', category: '构思', subcategory: '头脑风暴', source: 'compound-engineering', command: '/ce-brainstorm', example: '/ce-brainstorm "make retries safer"', description: '交互式问答思考功能或问题并写需求文档' },
+            { type: 'skill', category: '规划', subcategory: '计划', source: 'compound-engineering', command: '/ce-plan', example: '/ce-plan docs/brainstorm.md', description: '将功能想法转为详细实施计划' },
+            { type: 'skill', category: '执行', subcategory: '工作', source: 'compound-engineering', command: '/ce-work', example: '/ce-work', description: '使用worktree和任务跟踪执行计划' },
+            { type: 'skill', category: '调试', subcategory: '调试', source: 'compound-engineering', command: '/ce-debug', example: '/ce-debug', description: '系统化复现失败、追踪根因、实施修复' },
+            { type: 'skill', category: '代码审核', subcategory: '审查', source: 'compound-engineering', command: '/ce-code-review', example: '/ce-code-review', description: '合并前多代理代码审查' },
+            { type: 'skill', category: '学习', subcategory: '复合', source: 'compound-engineering', command: '/ce-compound', example: '/ce-compound', description: '记录学习使未来工作更容易' },
+            { type: 'skill', category: '配置', subcategory: '设置', source: 'compound-engineering', command: '/ce-setup', example: '/ce-setup', description: '检查环境、安装缺失工具、引导项目配置' },
+            { type: 'skill', category: '文档', subcategory: '审查', source: 'compound-engineering', command: '/ce-doc-review', example: '/ce-doc-review', description: '审查以发现问题和校准判断' },
+
+            // ============ Superpowers Marketplace ============
+            { type: 'skill', category: '软件开发', subcategory: '头脑风暴', source: 'superpowers', command: '/brainstorm', example: '/brainstorm', description: '头脑风暴' },
+            { type: 'skill', category: '软件开发', subcategory: '规划', source: 'superpowers', command: '/write-plan', example: '/write-plan', description: '编写计划' },
+            { type: 'skill', category: '软件开发', subcategory: '执行', source: 'superpowers', command: '/execute-plan', example: '/execute-plan', description: '执行计划' },
+            { type: 'skill', category: '写作', subcategory: '清晰', source: 'superpowers', command: 'writing-clearly-and-concisely', example: '参考1918年写作指南', description: '清晰简洁写作：完整1918参考文本' },
+            { type: 'skill', category: '开发', subcategory: 'Claude Code', source: 'superpowers', command: 'working-with-claude-code', example: 'Claude Code文档', description: '42+官方文档文件' },
+            { type: 'skill', category: '开发', subcategory: '插件', source: 'superpowers', command: 'developing-claude-code-plugins', example: '插件开发工作流', description: '简化的插件开发工作流' },
+
+            // ============ Official Claude Code Plugins ============
+            { type: 'command', category: '代码审核', subcategory: 'PR审查', source: 'claude-code-plugins', command: '/code-review', example: '/code-review --comment', description: '对PR执行自动化代码审查，4个并行代理' },
+            { type: 'command', category: 'Git', subcategory: '提交', source: 'claude-code-plugins', command: '/commit', example: '/commit', description: '创建带自动生成提交信息的git commit' },
+            { type: 'command', category: 'Git', subcategory: '完整工作流', source: 'claude-code-plugins', command: '/commit-push-pr', example: '/commit-push-pr', description: '一步完成commit、push和创建PR' },
+            { type: 'command', category: 'Git', subcategory: '清理', source: 'claude-code-plugins', command: '/clean_gone', example: '/clean_gone', description: '清理已从远程仓库删除的本地分支' },
+            { type: 'command', category: '功能开发', subcategory: '引导', source: 'claude-code-plugins', command: '/feature-dev', example: '/feature-dev Add OAuth', description: '启动引导式功能开发工作流，7个阶段' },
+            { type: 'command', category: '前端设计', subcategory: '界面', source: 'claude-code-plugins', command: '/frontend-design', example: '/frontend-design Create dashboard', description: '生成独特的、生产级前端界面' },
+            { type: 'command', category: '迭代开发', subcategory: '循环', source: 'claude-code-plugins', command: '/ralph-loop', example: '/ralph-loop "Build API" --max-iterations 50', description: '在当前会话中启动Ralph循环，迭代式开发' },
+            { type: 'command', category: '迭代开发', subcategory: '取消', source: 'claude-code-plugins', command: '/cancel-ralph', example: '/cancel-ralph', description: '取消当前活动的Ralph循环' },
+            { type: 'agent', category: '代码审核', subcategory: '探索', source: 'claude-code-plugins', command: 'code-explorer', example: '追踪认证流程', description: '深度分析现有代码库功能，追踪执行路径' },
+            { type: 'agent', category: '代码审核', subcategory: '架构', source: 'claude-code-plugins', command: 'code-architect', example: '设计缓存层', description: '设计功能架构和实施蓝图' },
+            { type: 'agent', category: '代码审核', subcategory: '审查', source: 'claude-code-plugins', command: 'code-reviewer', example: '检查最近更改', description: '审查代码中的bug、质量问题、规范合规性' },
+        ];
+
+        // Get unique sources
+        const sources = [...new Set(allData.map(item => item.source))];
+
+        // Populate source filter
+        const sourceFilter = document.getElementById('sourceFilter');
+        sources.forEach(source => {
+            const btn = document.createElement('button');
+            btn.className = 'source-btn';
+            btn.textContent = source;
+            btn.dataset.source = source;
+            sourceFilter.appendChild(btn);
+        });
+
+        // Render table
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            data.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.dataset.type = item.type;
+                tr.dataset.source = item.source;
+
+                const typeIcon = item.type === 'agent' ? '🤖' : item.type === 'command' ? '⚡' : '✨';
+
+                tr.innerHTML = `
+                    <td><span class="row-num">${index + 1}</span></td>
+                    <td><span class="type-badge ${item.type}">${typeIcon} ${item.type.toUpperCase()}</span></td>
+                    <td><span class="category">${item.category}</span></td>
+                    <td><span class="subcategory">${item.subcategory}</span></td>
+                    <td><span class="source-badge">${item.source}</span></td>
+                    <td><span class="command-code">${item.command}</span></td>
+                    <td><span class="example-code" title="${item.example}">${item.example}</span></td>
+                    <td><span class="description">${item.description}</span></td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+
+            updateStats(data);
+        }
+
+        // Update statistics
+        function updateStats(data) {
+            document.getElementById('total-count').textContent = data.length;
+            document.getElementById('agent-count').textContent = data.filter(i => i.type === 'agent').length;
+            document.getElementById('command-count').textContent = data.filter(i => i.type === 'command').length;
+            document.getElementById('skill-count').textContent = data.filter(i => i.type === 'skill').length;
+        }
+
+        // Filter functionality
+        let activeTypeFilter = 'all';
+        let activeSourceFilter = null;
+        let searchQuery = '';
+
+        function applyFilters() {
+            const rows = document.querySelectorAll('#tableBody tr');
+
+            rows.forEach(row => {
+                const type = row.dataset.type;
+                const source = row.dataset.source;
+                const text = row.textContent.toLowerCase();
+
+                const typeMatch = activeTypeFilter === 'all' || type === activeTypeFilter;
+                const sourceMatch = !activeSourceFilter || source === activeSourceFilter;
+                const searchMatch = !searchQuery || text.includes(searchQuery.toLowerCase());
+
+                row.classList.toggle('hidden', !(typeMatch && sourceMatch && searchMatch));
+            });
+
+            // Update visible count
+            const visibleRows = document.querySelectorAll('#tableBody tr:not(.hidden)');
+            document.getElementById('total-count').textContent = visibleRows.length;
+            document.getElementById('agent-count').textContent = [...visibleRows].filter(r => r.dataset.type === 'agent').length;
+            document.getElementById('command-count').textContent = [...visibleRows].filter(r => r.dataset.type === 'command').length;
+            document.getElementById('skill-count').textContent = [...visibleRows].filter(r => r.dataset.type === 'skill').length;
+        }
+
+        // Type filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeTypeFilter = btn.dataset.filter;
+                applyFilters();
+            });
+        });
+
+        // Source filter buttons
+        sourceFilter.addEventListener('click', (e) => {
+            if (e.target.classList.contains('source-btn')) {
+                const wasActive = e.target.classList.contains('active');
+                document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+
+                if (!wasActive) {
+                    e.target.classList.add('active');
+                    activeSourceFilter = e.target.dataset.source;
+                } else {
+                    activeSourceFilter = null;
+                }
+                applyFilters();
+            }
+        });
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            applyFilters();
+        });
+
+        // Initial render
+        renderTable(allData);
+
+        // ==================== 主题切换功能 ====================
+        const themeBtns = document.querySelectorAll('.theme-btn');
+
+        themeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 更新按钮状态
+                themeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // 应用主题
+                const theme = btn.dataset.theme;
+                if (theme === 'cyber-neon') {
+                    document.documentElement.removeAttribute('data-theme');
+                } else {
+                    document.documentElement.setAttribute('data-theme', theme);
+                }
+
+                // 保存主题到本地存储
+                localStorage.setItem('claude-ecosystem-theme', theme);
+            });
+        });
+
+        // 从本地存储恢复主题
+        const savedTheme = localStorage.getItem('claude-ecosystem-theme');
+        if (savedTheme) {
+            const savedBtn = document.querySelector(`.theme-btn[data-theme="${savedTheme}"]`);
+            if (savedBtn) {
+                savedBtn.click();
+            }
+        }
+
+        // Add animation on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.stat-item').forEach(item => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            item.style.transition = 'all 0.6s ease';
+            observer.observe(item);
+        });
+    </script>
+</body>
+</html>
