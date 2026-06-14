@@ -1,19 +1,19 @@
 ---
 name: mesh-init
-description: 项目初始化技能。自动检测并初始化 CLAUDE.md、OpenWolf 和 CodeGraph。当用户说"初始化项目"、"setup project"、"mesh-init"、"项目初始化"时触发，或在新项目开始时自动运行。
+description: 项目初始化技能。自动检测并初始化 CLAUDE.md、CodeGraph 和 OpenSpec 目录。当用户说"初始化项目"、"setup project"、"mesh-init"、"项目初始化"时触发，或在新项目开始时自动运行。
 ---
 
 # Mesh Init - 项目智能初始化
 
-一键完成项目的三大核心工具初始化，让 Claude Code 更智能地理解你的代码库。
+一键完成项目的四大核心工具初始化，让 Claude Code 更智能地理解你的代码库。
 
 ## 快速开始
 
 直接运行 `/mesh-init` 或说"初始化项目"，本技能将自动：
 
 1. 检测并初始化 CLAUDE.md（项目指令文件）
-2. 检测并初始化 OpenWolf（Claude 第二大脑）
-3. 检测并初始化 CodeGraph（代码知识图谱）
+2. 检测并初始化 CodeGraph（代码知识图谱）
+3. 检测并初始化 OpenSpec（变更管理目录结构）
 
 ---
 
@@ -56,54 +56,7 @@ test -f "$PROJECT_ROOT/CLAUDE.md"
 
 ---
 
-### Phase 2: OpenWolf 初始化
-
-OpenWolf 是 Claude Code 的"第二大脑"，提供文件索引、学习记忆和 Token 追踪。
-
-**检测逻辑：**
-```bash
-# 检查 .wolf 目录是否存在
-test -d "$PROJECT_ROOT/.wolf"
-# 检查 openwolf 是否全局安装
-command -v openwolf || npm list -g openwolf
-```
-
-**初始化步骤：**
-
-1. **安装 OpenWolf（如未安装）：**
-   ```bash
-   npm install -g openwolf
-   ```
-
-2. **初始化项目：**
-   ```bash
-   cd "$PROJECT_ROOT"
-   openwolf init
-   ```
-
-3. **验证初始化成功：**
-   ```bash
-   openwolf status
-   ```
-
-**OpenWolf 创建的文件：**
-| 文件 | 用途 |
-|------|------|
-| `.wolf/anatomy.md` | 项目文件地图，含描述和 Token 估算 |
-| `.wolf/cerebrum.md` | 学习记忆，存储偏好和错误教训 |
-| `.wolf/memory.md` | 按时间顺序的行动日志 |
-| `.wolf/buglog.json` | Bug 修复记忆，防止重复发现 |
-| `.wolf/token-ledger.json` | Token 使用追踪 |
-| `.wolf/hooks/` | 6 个 Claude Code 生命周期钩子 |
-| `.wolf/config.json` | 配置文件 |
-| `.wolf/identity.md` | 项目 Agent 人设 |
-| `.wolf/OPENWOLF.md` | Claude 每个会话遵循的指令 |
-
-**如果已存在：** 运行 `openwolf scan` 更新文件索引
-
----
-
-### Phase 3: CodeGraph 初始化
+### Phase 2: CodeGraph 初始化
 
 CodeGraph 是基于 SQLite 的代码知识图谱，让 Claude 能快速查询符号定义、调用关系、影响范围等。
 
@@ -147,6 +100,45 @@ command -v codegraph
 
 ---
 
+### Phase 3: OpenSpec 目录初始化
+
+OpenSpec 是 comet 技能的变更管理目录结构，用于管理变更流程和规格文档。
+
+**检测逻辑：**
+```bash
+# 检查 openspec 目录是否存在
+test -d "$PROJECT_ROOT/openspec"
+```
+
+**初始化步骤：**
+
+1. **创建目录结构：**
+   ```bash
+   mkdir -p "$PROJECT_ROOT/openspec/changes"
+   mkdir -p "$PROJECT_ROOT/openspec/specs"
+   ```
+
+2. **添加 .gitkeep（确保空目录可被 git 追踪）：**
+   ```bash
+   touch "$PROJECT_ROOT/openspec/changes/.gitkeep"
+   touch "$PROJECT_ROOT/openspec/specs/.gitkeep"
+   ```
+
+**创建的目录用途：**
+| 目录 | 用途 |
+|------|------|
+| `openspec/changes/` | 活跃的变更流程（由 comet-open 创建） |
+| `openspec/specs/` | 规格文档（由 comet-build 维护） |
+
+**与 comet 的关系：**
+- `/comet-open <name>` 在 `openspec/changes/<name>/` 创建 proposal.md, design.md, tasks.md
+- `/comet-archive` 将完成的变更移动到 `openspec/changes/archive/`
+- mesh-init 只创建骨架目录，实际变更文件由 comet 子技能管理
+
+**如果已存在：** 报告"✓ OpenSpec 目录已存在"
+
+---
+
 ## 执行顺序
 
 ```
@@ -159,18 +151,16 @@ command -v codegraph
 │  ├── [不存在] 分析项目 → 生成 CLAUDE.md                      │
 │  └── [存在] ✓ 跳过                                          │
 │                                                             │
-│  Phase 2: OpenWolf                                          │
-│  ├── 检测 .wolf/ 目录                                       │
-│  ├── 检测 openwolf 命令                                     │
-│  ├── [未安装] npm install -g openwolf                       │
-│  ├── [未初始化] openwolf init                               │
-│  └── [已存在] openwolf scan                                 │
-│                                                             │
-│  Phase 3: CodeGraph                                         │
+│  Phase 2: CodeGraph                                         │
 │  ├── 检测 .codegraph/ 目录                                  │
 │  ├── 检测 codegraph 命令                                    │
 │  ├── [未安装] npm install -g codegraph                      │
 │  ├── [未初始化] codegraph init -i                           │
+│  └── [已存在] ✓ 跳过                                        │
+│                                                             │
+│  Phase 3: OpenSpec                                          │
+│  ├── 检测 openspec/ 目录                                    │
+│  ├── [不存在] 创建 openspec/changes/ 和 openspec/specs/     │
 │  └── [已存在] ✓ 跳过                                        │
 │                                                             │
 │  最终报告: 初始化状态摘要                                    │
@@ -188,16 +178,15 @@ command -v codegraph
 ╠═══════════════════════════════════════════════════════════════╣
 ║                                                               ║
 ║  CLAUDE.md    [✓ 已存在 / ✓ 新建 / - 跳过]                    ║
-║  OpenWolf     [✓ 已存在 / ✓ 新建 / ✗ 失败]                    ║
 ║  CodeGraph    [✓ 已存在 / ✓ 新建 / ✗ 失败]                    ║
+║  OpenSpec     [✓ 已存在 / ✓ 新建 / ✗ 失败]                    ║
 ║                                                               ║
 ║  项目根目录: /path/to/project                                 ║
 ║  技术栈: Node.js, TypeScript, React                           ║
 ║                                                               ║
 ║  下一步建议:                                                  ║
-║  - 运行 /understand 生成可视化知识图谱                        ║
-║  - 查看 .wolf/cerebrum.md 添加项目特定规则                    ║
 ║  - 使用 codegraph_search 查询符号定义                         ║
+║  - 使用 /comet-open 开始一个变更流程                          ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```
@@ -210,8 +199,8 @@ command -v codegraph
 |----------|----------|
 | npm 不可用 | 提示用户安装 Node.js |
 | 项目目录非 git 仓库 | 警告但不阻止初始化 |
-| OpenWolf 初始化失败 | 记录错误，继续执行 CodeGraph |
 | CodeGraph 初始化失败 | 记录错误，继续执行其他步骤 |
+| OpenSpec 目录创建失败 | 记录错误，继续执行其他步骤 |
 | 权限问题 | 提示用户检查目录权限 |
 
 ---

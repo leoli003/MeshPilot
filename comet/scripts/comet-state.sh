@@ -10,6 +10,7 @@
 #   check <change-name> <phase>    — Verify entry requirements for a phase
 #   check <change-name> <phase> --recover — Output structured recovery context for compaction resume
 #   scale <change-name>             — Assess and set verification mode based on metrics
+#   get-sequence                    — Get next available sequence number for superpowers files
 #
 # Workflows: full, hotfix, tweak
 # Phases for check: open, design, build, verify, archive
@@ -155,6 +156,61 @@ yaml_file_for() {
   echo "$change_dir/.comet.yaml"
 }
 
+# --- Sequence number helpers ---
+
+# Get next available sequence number for superpowers files
+# Scans docs/superpowers/specs/, docs/superpowers/plans/, docs/superpowers/reports/
+# Returns the max sequence + 1, formatted as 4-digit zero-padded
+get_next_superpowers_sequence() {
+  local max_seq=0
+  local dirs=("docs/superpowers/specs" "docs/superpowers/plans" "docs/superpowers/reports")
+
+  for dir in "${dirs[@]}"; do
+    if [ -d "$dir" ]; then
+      for file in "$dir"/*; do
+        [ -f "$file" ] || continue
+        local filename
+        filename=$(basename "$file")
+        # Extract sequence prefix (format: 0001-中文标题-类型.md)
+        local seq
+        seq=$(echo "$filename" | grep -oE '^[0-9]{4}-' 2>/dev/null | sed 's/-$//' || true)
+        if [ -n "$seq" ]; then
+          # Verify it's a sequence format, not a date (YYYY-MM-DD)
+          # Sequence format: 4 digits followed by hyphen and non-digit
+          local after_seq
+          after_seq=$(echo "$filename" | sed 's/^[0-9]\{4\}//')
+          # If followed by hyphen+digit, it's a date format, skip
+          if echo "$after_seq" | grep -qE '^-[0-9]'; then
+            continue
+          fi
+          if [ "$seq" -gt "$max_seq" ]; then
+            max_seq=$seq
+          fi
+        fi
+      done
+    fi
+  done
+
+  printf '%04d' $((max_seq + 1))
+}
+
+# Get Chinese title from proposal.md first line
+get_chinese_title() {
+  local change_name="$1"
+  local change_dir
+  change_dir=$(change_dir_for "$change_name")
+  local proposal_file="$change_dir/proposal.md"
+
+  if [ -f "$proposal_file" ]; then
+    # Read first line, remove # prefix and trim whitespace
+    local title
+    title=$(head -1 "$proposal_file" | sed 's/^# *//' | sed 's/ *$//')
+    echo "$title"
+  else
+    echo "$change_name"
+  fi
+}
+
 # --- Subcommands ---
 
 cmd_init() {
@@ -194,6 +250,11 @@ cmd_init() {
       ;;
   esac
 
+  # Get sequence number and Chinese title for superpowers file naming
+  local sequence chinese_title
+  sequence=$(get_next_superpowers_sequence)
+  chinese_title=$(get_chinese_title "$change_name")
+
   # Write .comet.yaml
   # Record current HEAD as base_ref for scale assessment fallback
   local base_ref="null"
@@ -204,6 +265,8 @@ cmd_init() {
   cat > "$yaml_file" <<EOF
 workflow: $workflow
 phase: $phase
+sequence: $sequence
+chinese_title: $chinese_title
 build_mode: $build_mode
 build_pause: null
 isolation: $isolation
@@ -219,7 +282,7 @@ verified_at: null
 archived: false
 EOF
 
-  green "Initialized: $yaml_file (workflow=$workflow)"
+  green "Initialized: $yaml_file (workflow=$workflow, sequence=$sequence)"
 }
 
 cmd_get() {
@@ -265,13 +328,13 @@ cmd_set() {
       yellow "WARNING: Setting 'phase' directly bypasses state machine constraints." >&2
       yellow "  Consider using: comet-state.sh transition <change-name> <event>" >&2
       ;;
-    workflow|build_mode|build_pause|isolation|verify_mode|verify_result|verification_report|branch_status|archived|design_doc|plan|verified_at|created_at|direct_override|build_command|verify_command|handoff_context|handoff_hash|base_ref)
+    workflow|build_mode|build_pause|isolation|verify_mode|verify_result|verification_report|branch_status|archived|design_doc|plan|verified_at|created_at|direct_override|build_command|verify_command|handoff_context|handoff_hash|base_ref|sequence|chinese_title)
       # Valid field
       ;;
     *)
       red "ERROR: Unknown field: '$field'" >&2
       red "Valid fields:" >&2
-      red "  workflow, phase, design_doc, plan, build_mode, build_pause, isolation," >&2
+      red "  workflow, phase, sequence, chinese_title, design_doc, plan, build_mode, build_pause, isolation," >&2
       red "  verify_mode, verify_result, verification_report, branch_status," >&2
       red "  verified_at, created_at, archived, base_ref, direct_override," >&2
       red "  build_command, verify_command, handoff_context, handoff_hash" >&2
@@ -311,8 +374,15 @@ cmd_set() {
     direct_override)
       validate_enum "$value" "true" "false"
       ;;
-    design_doc|plan|verification_report|verified_at|created_at|build_command|verify_command|handoff_context|handoff_hash)
+    design_doc|plan|verification_report|verified_at|created_at|build_command|verify_command|handoff_context|handoff_hash|chinese_title)
       # No validation for path fields, date fields, or project command strings
+      ;;
+    sequence)
+      # Sequence is a 4-digit number, validate format
+      if [[ ! "$value" =~ ^[0-9]{4}$ ]]; then
+        red "ERROR: sequence must be a 4-digit number, got '$value'" >&2
+        exit 1
+      fi
       ;;
   esac
 
@@ -888,6 +958,10 @@ case "$SUBCOMMAND" in
     fi
     cmd_scale "$@"
     ;;
+  get-sequence)
+    # Output next available sequence number for superpowers files
+    get_next_superpowers_sequence
+    ;;
   *)
     red "Unknown subcommand: $SUBCOMMAND" >&2
     echo "" >&2
@@ -900,6 +974,7 @@ case "$SUBCOMMAND" in
     echo "  transition <change-name> <event> — Apply a validated state transition" >&2
     echo "  check <change-name> <phase>    — Verify entry requirements for a phase" >&2
     echo "  scale <change-name>             — Assess and set verification mode based on metrics" >&2
+    echo "  get-sequence                    — Get next available sequence number for superpowers files" >&2
     echo "" >&2
     echo "Workflows: full, hotfix, tweak" >&2
     echo "Phases for check: open, design, build, verify, archive" >&2

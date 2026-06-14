@@ -42,7 +42,58 @@ YAML="$CHANGE_DIR/.comet.yaml"
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")" 2>/dev/null || dirname "$0")" && pwd)"
 STATE_SH="$SCRIPT_DIR/comet-state.sh"
 TODAY=$(date +%Y-%m-%d)
-ARCHIVE_NAME="${TODAY}-${CHANGE}"
+
+# 计算序号前缀：扫描归档目录，找到最大序号
+# 序号格式：0001-名称（4位数字+连字符）
+get_next_sequence() {
+  local archive_base="openspec/changes/archive"
+  local max_seq=0
+  if [ -d "$archive_base" ]; then
+    for dir in "$archive_base"/*; do
+      [ -d "$dir" ] || continue
+      local dirname
+      dirname=$(basename "$dir")
+      # 提取序号前缀（格式：0001-名称）
+      # 必须是4位数字后面紧跟连字符
+      # 日期格式 (2026-06-10-xxx) 匹配后会得到 2026，但后面紧跟 -06，不是单个连字符
+      # 正确序号格式 (0001-xxx) 会匹配 0001 后面紧跟单个连字符
+      local seq
+      seq=$(echo "$dirname" | grep -oE '^[0-9]{4}-' 2>/dev/null | sed 's/-$//' || true)
+      if [ -n "$seq" ]; then
+        # 检查是否为真正的序号格式：4位数字后紧跟连字符，后面不是数字
+        # 这样可以区分：0001-xxx（序号）和 2026-06-10-xxx（日期）
+        local after_seq
+        after_seq=$(echo "$dirname" | sed 's/^[0-9]\{4\}//')
+        # 如果后面紧跟连字符+数字，说明是日期格式，跳过
+        if echo "$after_seq" | grep -qE '^-[0-9]'; then
+          continue
+        fi
+        if [ "$seq" -gt "$max_seq" ]; then
+          max_seq=$seq
+        fi
+      fi
+    done
+  fi
+  printf '%04d' $((max_seq + 1))
+}
+
+# 从 proposal.md 第一行提取中文标题
+get_chinese_title() {
+  local proposal_file="$CHANGE_DIR/proposal.md"
+  if [ -f "$proposal_file" ]; then
+    # 读取第一行，去掉 # 符号和前后空格
+    local title
+    title=$(head -1 "$proposal_file" | sed 's/^# *//' | sed 's/ *$//')
+    echo "$title"
+  else
+    # 如果没有 proposal.md，使用 change-name
+    echo "$CHANGE"
+  fi
+}
+
+SEQ_PREFIX=$(get_next_sequence)
+CHINESE_TITLE=$(get_chinese_title)
+ARCHIVE_NAME="${SEQ_PREFIX}-${CHINESE_TITLE}"
 ARCHIVE_DIR="openspec/changes/archive/${ARCHIVE_NAME}"
 
 STEPS_OK=0
@@ -260,8 +311,27 @@ if [ "$DRY_RUN" -eq 1 ]; then
   step_dry_run "Would move: $CHANGE_DIR → $ARCHIVE_DIR"
 else
   mkdir -p "openspec/changes/archive"
-  mv "$CHANGE_DIR" "$ARCHIVE_DIR"
-  step_ok "Moved to: $ARCHIVE_DIR"
+  # 尝试 mv，如果失败则使用 cp + rm 作为备选
+  if mv "$CHANGE_DIR" "$ARCHIVE_DIR" 2>/dev/null; then
+    step_ok "Moved to: $ARCHIVE_DIR"
+  else
+    yellow "  [FALLBACK] mv failed, using cp + rm instead"
+    # 复制目录
+    if cp -r "$CHANGE_DIR" "$ARCHIVE_DIR"; then
+      # 更新归档目录中 .comet.yaml 的 handoff_context 路径
+      if [ -f "$ARCHIVE_DIR/.comet.yaml" ]; then
+        sed -i "s|openspec/changes/$CHANGE/|openspec/changes/archive/$ARCHIVE_NAME/|g" "$ARCHIVE_DIR/.comet.yaml"
+      fi
+      # 删除原始目录
+      if rm -rf "$CHANGE_DIR"; then
+        step_ok "Moved to: $ARCHIVE_DIR (via cp + rm)"
+      else
+        step_fail "Failed to remove original: $CHANGE_DIR"
+      fi
+    else
+      step_fail "Failed to copy: $CHANGE_DIR → $ARCHIVE_DIR"
+    fi
+  fi
 fi
 
 # --- Step 8: Mark archived via comet-state transition ---
