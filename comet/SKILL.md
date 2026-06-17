@@ -1,7 +1,7 @@
 ---
 name: comet
 description: "Comet — OpenSpec + Superpowers 双星开发工作流。使用 /comet 启动，自动检测阶段并分发到子命令。五个阶段：open → design → build → verify → archive。"
-argument-hint: "[--ralph] [--auto] [--no-deslop] [--critic=architect|critic|codex] <任务描述>"
+argument-hint: "[--ralph] [--auto] [--subagent_limit=N] [--no-deslop] [--critic=architect|critic|codex] <任务描述>"
 ---
 
 # Comet — OpenSpec + Superpowers 双星开发工作流
@@ -14,6 +14,27 @@ Superpowers 处理 HOW — 技术设计、计划、执行、收尾
 ```
 
 **核心原则：头脑风暴不可跳过。每个变更都必须经过深度设计（hotfix 和 tweak 预设除外）。**
+
+---
+
+## Subagent Limit
+
+当传入 `--subagent_limit` 参数时，控制任务数阈值：tasks ≥ N 时使用子 agent 执行。
+
+**检测方式：** 检查 `{{PROMPT}}` 是否包含 `--subagent_limit=N`。如果存在：
+1. 从工作提示中移除参数
+2. 存储参数值（默认 1）
+3. 传递给子技能
+
+**参数值：**
+
+| 值 | 行为 |
+|---|------|
+| 1（默认） | 只要有任务就用子 agent |
+| 3 | 原生行为（≥3 个任务才用子 agent） |
+| N | ≥N 个任务时用子 agent |
+
+**传递规则：** 分发到子技能时原样传递 `--subagent_limit={value}`。
 
 ---
 
@@ -78,7 +99,7 @@ Superpowers 处理 HOW — 技术设计、计划、执行、收尾
 | Open 阶段评审 | "确认，进入下一阶段" | 接受生成的产物 |
 | Design 阶段确认 | 用户选择的选项或第一个推荐项 | 接受设计提案 |
 | Build: 隔离选择 | "创建分支" (branch) | 简单、快速，推荐用于 ≤3 文件 |
-| Build: 执行方法 | "subagent-driven-development" | 推荐用于 ≥3 任务 |
+| Build: 执行方法 | "subagent-driven-development" | 基于 subagent_limit 阈值（默认 1，始终使用子 agent） |
 | Verify: 分支处理 | "合并到主分支" (merge to main) | 标准完成流程 |
 | Verify 失败: 修复或接受 | "全部修复" | 继续修复问题 |
 
@@ -161,8 +182,28 @@ Superpowers 处理 HOW — 技术设计、计划、执行、收尾
 
 **步骤 2：阶段判定**（按顺序检查，首次匹配生效）
 
+**Subagent Limit 参数传递：**
+- 在调用任何子技能前，将 `--subagent_limit` 参数值传递给子技能
+- 子技能（comet-build、comet-hotfix、comet-tweak）根据此参数决定执行模式
+
 1. `archived: true` 或变更已移动到归档 → 工作流完成
-2. `verify_result: pass` 且 `archived` 不是 `true` → 调用 `/comet-archive`
+2. `verify_result: pass` 且 `archived` 不是 `true` → **调用 `/comet-archive` 技能**
+
+   <IMPORTANT>
+   **禁止手动归档操作！**
+   
+   - ❌ 不要执行 `mv openspec/changes/<name> openspec/changes/archive/`
+   - ❌ 不要手动创建归档目录或移动文件
+   - ✅ 必须调用 `/comet-archive` 技能或 `"$COMET_BASH" "$COMET_ARCHIVE" <name>`
+   
+   归档脚本会自动：
+   - 从 `proposal.md` 第一行提取中文标题
+   - 生成 `0001-中文标题` 格式的归档目录
+   - 同步 delta spec → 主 spec
+   - 标注设计文档和计划的 `archived-with` 状态
+   - 更新 `.comet.yaml` 的 `archived: true`
+   </IMPORTANT>
+
 3. `verify_result: fail` → 进入验证失败决策阻塞点（暂停并询问修复或接受偏差；只有用户选择修复后，运行 `verify-fail` 然后 `/comet-build`）
 4. `phase: verify` 或 tasks.md 全部勾选 → 调用 `/comet-verify`
 5. `phase: build` 或有设计文档但计划/执行未完成 → 按工作流路由：`hotfix` → `/comet-hotfix`，`tweak` → `/comet-tweak`，`full` → `/comet-build`
@@ -398,3 +439,20 @@ docs/superpowers/                      # Superpowers — HOW
 9. **归档闭环** — 设计文档和计划必须标记 `archived-with` 状态
 10. **修改现有功能** — 直接打开新变更
 11. **预设有限制** — 当 hotfix/tweak 满足升级条件时及时切换到完整工作流
+
+### 任务追踪铁律
+
+**铁律：tasks.md 是进度追踪核心，必须实时同步！**
+
+<IMPORTANT>
+- ❌ 禁止批量完成后再统一勾选
+- ❌ 禁止跳过勾选直接进入下一阶段
+- ✅ 执行任务 → 立即勾选 → 执行下一个
+</IMPORTANT>
+
+违反此铁律将导致：
+- 进度追踪失效，无法准确判断变更完成度
+- 上下文恢复时丢失执行状态
+- 阶段转换检查失去依据
+
+进入 Verify 阶段前，必须检查 tasks.md 所有任务是否已勾选。

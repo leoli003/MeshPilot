@@ -1,0 +1,265 @@
+---
+name: comet-verify
+description: "Comet 阶段 4: 验证与关闭。使用 /comet-verify 调用。验证实现是否符合设计，处理开发分支。"
+---
+
+# Comet 阶段 4: 验证与关闭
+
+## Auto 模式检测
+
+**在开始时检查 `--auto` 标志：**
+
+```
+如果 {{PROMPT}} 包含 "--auto"：
+  1. 从工作提示中移除 "--auto"
+  2. 为此阶段设置 AUTO_MODE=true
+  3. 跳过所有 AskUserQuestion 阻塞点
+  4. 在每个决策点自动选择：
+     - 步骤 1b：全部修复（验证失败时）
+     - 步骤 2b Spec 漂移：选项 A（追加实现偏差章节）
+     - 步骤 3：合并到主分支（选项 1）
+```
+
+当 `AUTO_MODE=true` 时，此阶段完全自主运行，无需用户确认。
+
+---
+
+## 前置条件
+
+- 代码已提交（阶段 3 完成）
+- tasks.md 所有任务已完成
+
+## 步骤
+
+### 0. 入口状态验证
+
+执行入口验证：
+
+```bash
+COMET_ENV="${COMET_ENV:-$(find . "$HOME"/.*/skills "$HOME/.config" "$HOME/.gemini" -path '*/comet/scripts/comet-env.sh' -type f -print -quit 2>/dev/null)}"
+if [ -z "$COMET_ENV" ]; then
+  echo "ERROR: comet-env.sh not found. Ensure the comet skill is installed." >&2
+  return 1
+fi
+. "$COMET_ENV"
+"$COMET_BASH" "$COMET_STATE" check <change-name> verify
+```
+
+验证通过后进入步骤 1。验证失败时脚本输出具体失败原因。
+
+**幂等性**：所有 verify 阶段检查可以安全重新执行。如果 `verify_result` 已是 `pass` 且 `branch_status` 是 `handled`，验证完成 — 执行 guard 转换。如果 `verify_result` 是 `pending`，从头开始验证。
+
+### 1. 规模评估
+
+执行规模评估：
+
+```bash
+"$COMET_BASH" "$COMET_STATE" scale <change-name>
+```
+
+脚本自动统计任务数、delta spec 数、变更文件数，确定轻量或完整验证模式，并设置 verify_mode 字段。
+
+验证开始前，通过 `comet/reference/dirty-worktree.md` 协议处理未提交更改。Verify 阶段特殊处理：
+
+1. 如果 dirty diff 属于当前变更且涉及实现、测试、任务、delta spec 或设计文档变更，不要在 verify 阶段直接修复或提交；报告失败并进入步骤 1b 验证失败决策阻塞点
+2. 如果 dirty diff 仅是 verify 阶段产物（如验证报告草稿、分支处理记录），可以继续并在 verify 阶段记录状态
+3. 如果 dirty diff 显示有实现但 tasks.md 未勾选，视为 build 状态滞后；报告失败并进入步骤 1b，让用户决定回滚修复还是接受偏差
+
+只有用户选择修复后，才允许回滚到 build 阶段：
+
+```bash
+# 仅在用户确认修复后执行
+"$COMET_BASH" "$COMET_STATE" transition <change-name> verify-fail
+```
+
+注意：如果 build 阶段每个任务都提交了，脚本基于工作树 diff 的文件计数可能低估变更规模。此时必须读取计划文件头的 `base-ref` 并用提交范围验证：
+
+```bash
+PLAN=$("$COMET_BASH" "$COMET_STATE" get <change-name> plan)
+BASE_REF=$(grep '^base-ref:' "$PLAN" 2>/dev/null | head -1 | sed 's/^base-ref: *//')
+git diff --stat "$BASE_REF"...HEAD
+```
+
+如果提交范围显示变更超出轻量阈值（> 4 文件、跨模块协调或 delta spec 跨超过 1 个能力），手动设置为完整验证：
+
+```bash
+"$COMET_BASH" "$COMET_STATE" set <change-name> verify_mode full
+```
+
+### 1b. 验证失败决策（阻塞点）
+
+当验证不通过时：
+
+**如果 AUTO_MODE=true：**
+- 跳过 AskUserQuestion
+- 自动选择"全部修复"
+- 记录日志："[Auto Mode] 自动选择修复所有问题"
+- 运行 `"$COMET_BASH" "$COMET_STATE" transition <change-name> verify-fail`
+- 调用 `/comet-build` 进行修复
+
+**如果 AUTO_MODE=false（默认）：**
+- 必须使用 AskUserQuestion 工具暂停并等待用户决定修复还是接受偏差
+- 不得自动运行 `"$COMET_BASH" "$COMET_STATE" transition <change-name> verify-fail`，也不得自动调用 `/comet-build`
+- 不得仅输出文本提示后继续执行
+
+暂停时必须列出：
+- 失败项
+- 是否 CRITICAL（构建失败、测试失败、安全问题、核心验收场景失败）
+- 推荐处理方式
+
+**不确定性原则**：当严重性不明确时，降级处理（SUGGESTION > WARNING > CRITICAL）。仅对构建失败、测试失败和安全问题使用 CRITICAL；模糊或不确定的问题应为 WARNING 或 SUGGESTION。
+
+用户选择后，按以下方式继续：
+- **全部修复**：运行 `"$COMET_BASH" "$COMET_STATE" transition <change-name> verify-fail`，然后调用 `/comet-build` 进行修复
+- **逐项处理**：CRITICAL 失败必须修复；非 CRITICAL 失败可选择接受偏差，但必须在验证报告中记录接受原因和影响范围。如存在任何 CRITICAL 失败，不允许跳过修复接受全部
+
+### 2a. 轻量验证（小变更）
+
+当规模评估结果为"小"时，跳过 `openspec-verify-change`，直接执行这些检查：
+
+1. 所有 tasks.md 任务已完成 `[x]`
+2. 变更文件与 tasks.md 描述匹配（`git diff --stat` / `git diff --cached --stat` / `git diff --stat <base-ref>...HEAD` 与任务内容对比）
+3. 构建通过（运行项目特定构建命令，如 `npm run build`、`mvn compile`、`cargo build` 等）
+4. 相关测试通过
+5. 无明显安全问题（无硬编码密钥、无新增不安全操作）
+
+**通过标准**：全部 5 项 OK，无 CRITICAL 问题。
+
+**不通过时**：报告失败，进入步骤 1b 验证失败决策阻塞点。只有用户确认修复后，执行以下命令记录失败并回滚到 build 阶段，然后调用 `/comet-build` 进行修复：
+
+```bash
+# 仅在用户确认修复后执行
+"$COMET_BASH" "$COMET_STATE" transition <change-name> verify-fail
+```
+
+**报告格式**：简表列出 5 项检查结果 + PASS/FAIL。
+
+**跳过项**（轻量验证不检查）：
+- spec 场景覆盖
+- 设计文档一致性深度对比
+- 代码模式一致性建议
+- delta spec 和设计文档漂移检测
+
+### 2b. 完整验证（大变更）
+
+当规模评估结果为"大"时：
+
+**立即执行：** 使用 Skill 工具加载 `openspec-verify-change` 技能。禁止跳过此步骤。
+
+技能加载后，按照其指导进行验证。检查项：
+1. 所有 tasks.md 任务已完成（`[x]`）
+2. 实现与 `openspec/changes/<name>/design.md` 高层设计决策匹配
+3. 实现与设计文档匹配（`docs/superpowers/specs/` 下的技术设计文档）
+4. 所有能力规格场景通过
+5. proposal.md 目标已满足
+6. delta spec 与设计文档无矛盾（如 Build 阶段有增量规格修改，检查设计文档是否有对应记录）
+7. `docs/superpowers/specs/` 下的关联设计文档可定位（文件存在且与当前变更相关）
+
+验证不通过时：报告缺失项，进入步骤 1b 验证失败决策阻塞点。只有用户确认修复后，执行以下命令记录失败并回滚到 build 阶段，然后调用 `/comet-build` 补充：
+
+```bash
+# 仅在用户确认修复后执行
+"$COMET_BASH" "$COMET_STATE" transition <change-name> verify-fail
+```
+
+**Spec 漂移处理**（用户决策点）：
+- 如果检查项 6 发现矛盾（delta spec 有内容但设计文档未反映）：
+
+**如果 AUTO_MODE=true：**
+- 跳过 AskUserQuestion
+- 自动选择选项 A（在设计文档追加"实现偏差"章节）
+- 记录日志："[Auto Mode] 自动选择追加实现偏差章节"
+- 按选项 A 处理
+
+**如果 AUTO_MODE=false（默认）：**
+- 必须使用 AskUserQuestion 作为单选题暂停并等待用户选择处理方式
+- 不得自动选择
+
+选项：
+  - 选项 A：在设计文档追加"实现偏差"章节记录偏差原因。选项 A 是 verify 阶段允许的产物；写入后不得因该设计文档变更再次触发步骤 1b dirty-worktree 决策
+  - 选项 B：用户选择 B 后，运行 `"$COMET_BASH" "$COMET_STATE" transition <change-name> verify-fail`，然后调用 `/comet-build`；`/comet-build` 的 Spec 增量更新规则会加载 Superpowers `brainstorming` 技能更新设计文档 + delta spec
+  - 选项 C：确认偏差可接受，继续验证（设计文档将在归档时标记为 `superseded-by-main-spec`）
+
+### 3. 收尾（Superpowers）
+
+**立即执行：** 使用 Skill 工具加载 Superpowers `finishing-a-development-branch` 技能。禁止跳过此步骤。
+
+如 Superpowers `finishing-a-development-branch` 技能不可用，停止流程并提示安装或启用 Superpowers 技能。不要用普通对话替代此步骤。
+
+技能加载后，按照其指导完成收尾。分支处理选项：
+1. 本地合并到主分支
+2. 推送并创建 PR
+3. 保留分支（稍后处理）
+4. 放弃工作
+
+**如果 AUTO_MODE=true：**
+- 跳过 AskUserQuestion
+- 自动选择"本地合并到主分支"（选项 1）
+- 记录日志："[Auto Mode] 自动选择合并到主分支"
+- 执行合并操作
+
+**如果 AUTO_MODE=false（默认）：**
+- 这是用户决策点。**必须使用 AskUserQuestion 工具暂停并等待用户选择分支处理方法**
+- 不得基于推荐、默认值或当前分支状态选择
+- 不得仅输出文本提示后继续执行
+- 只有用户完成选择且对应操作完成后，才能写入 `branch_status: handled`
+
+**确认项**：
+- 所有测试通过
+- 无硬编码密钥或安全问题
+
+### 4. 记录验证证据
+
+验证报告必须保存到磁盘并记录到 `.comet.yaml`；分支处理完成后，状态字段也必须写入。不要手动设置 `verify_result: pass`；使用 guard 自动转换。
+
+**首先读取序号和中文标题：**
+
+```bash
+SEQUENCE=$("$COMET_BASH" "$COMET_STATE" get <change-name> sequence)
+CHINESE_TITLE=$("$COMET_BASH" "$COMET_STATE" get <change-name> chinese_title)
+```
+
+**构建验证报告路径：**
+
+```bash
+mkdir -p docs/superpowers/reports
+# 验证报告保存到: docs/superpowers/reports/<sequence>-<chinese_title>-验证.md
+# 示例: docs/superpowers/reports/0004-挡板碰撞粒子效果-验证.md
+
+REPORT_PATH="docs/superpowers/reports/${SEQUENCE}-${CHINESE_TITLE}-验证.md"
+
+"$COMET_BASH" "$COMET_STATE" set <change-name> verification_report "$REPORT_PATH"
+"$COMET_BASH" "$COMET_STATE" set <change-name> branch_status handled
+```
+
+## 退出条件
+
+- 验证报告通过
+- 分支已处理
+- `.comet.yaml` 中的 `verification_report` 指向现有验证报告文件
+- `.comet.yaml` 中 `branch_status: handled`
+- **阶段 guard**：运行 `"$COMET_BASH" "$COMET_GUARD" <change-name> verify --apply`；全部通过后，通过 `comet-state transition verify-pass` 自动转换到 `phase: archive`
+
+验证和分支处理都完成后，运行 guard 自动转换：
+
+```bash
+"$COMET_BASH" "$COMET_GUARD" <change-name> verify --apply
+```
+
+状态文件自动更新为 `phase: archive`、`verify_result: pass`、`verified_at: YYYY-MM-DD`。
+
+## 自动转换
+
+退出条件满足后（包括用户选择分支处理方法），自动转换到下一阶段：
+
+> **必需的下一技能：** 调用 `comet-archive` 技能进入归档阶段。
+
+## 上下文压缩恢复
+
+verify 阶段可能触发上下文压缩。恢复时首先运行：
+
+```bash
+"$COMET_BASH" "$COMET_STATE" check <change-name> verify --recover
+```
+
+脚本输出结构化恢复上下文（阶段、验证状态、分支状态、恢复操作）。按 Recovery action 确定下一步。
